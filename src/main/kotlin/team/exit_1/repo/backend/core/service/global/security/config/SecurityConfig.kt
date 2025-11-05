@@ -1,5 +1,6 @@
 package team.exit_1.repo.backend.core.service.global.security.config
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -17,6 +18,7 @@ import team.exit_1.repo.backend.core.service.global.security.data.CorsEnvironmen
 
 @Configuration
 @EnableWebSecurity
+@EnableConfigurationProperties(CorsEnvironment::class)
 class SecurityConfig(
     private val corsEnvironment: CorsEnvironment,
 ) {
