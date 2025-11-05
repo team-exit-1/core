@@ -11,9 +11,8 @@ import java.time.LocalDateTime
 @DynamicUpdate
 class Conversation {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "conversation_id", nullable = false)
-    var id: Long? = null
+    var id: String? = null
 
     @Column(name = "user_id", nullable = false)
     var userId: String? = null
