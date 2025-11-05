@@ -13,12 +13,27 @@ spring:
     properties:
       hibernate:
         format_sql: true
+    open-in-view: false
 
 server:
   port: 8081
 
 llm-service:
   url: http://localhost:3000
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    url: /api/spring/v3/api-docs
+    config-url: /api/spring/v3/api-docs/swagger-config
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
 
 management:
   endpoints:
