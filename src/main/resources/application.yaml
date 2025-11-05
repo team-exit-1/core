@@ -8,7 +8,7 @@ spring:
     password: ${RDB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${RDB_DDL:create-drop}
     show-sql: true
     properties:
       hibernate:
