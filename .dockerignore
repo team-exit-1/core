@@ -17,3 +17,4 @@ cloud-diagram.py
 build
 !build/libs/*.jar
 .kotlin
+.env.example
