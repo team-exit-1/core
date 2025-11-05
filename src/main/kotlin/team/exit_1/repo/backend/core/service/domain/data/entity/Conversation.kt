@@ -3,6 +3,7 @@ package team.exit_1.repo.backend.core.service.domain.data.entity
 import jakarta.persistence.*
 import org.hibernate.annotations.DynamicInsert
 import org.hibernate.annotations.DynamicUpdate
+import team.exit_1.repo.backend.core.service.domain.data.constant.ConversationStatus
 import java.time.LocalDateTime
 
 @Table(name = "tb_conversations")
@@ -19,4 +20,8 @@ class Conversation {
 
     @Column
     var timestamp: LocalDateTime? = null
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    var status: ConversationStatus = ConversationStatus.ACTIVE
 }
