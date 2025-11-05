@@ -1,3 +1,13 @@
 spring:
   application:
-    name: core
+    name: core-service
+
+server:
+  port: 8081
+
+node-service:
+  url: http://localhost:3000
+
+logging:
+  level:
+    team.exit_1.backend.core: DEBUG
