@@ -5,6 +5,7 @@ import jakarta.persistence.*
 import org.hibernate.annotations.DynamicInsert
 import org.hibernate.annotations.DynamicUpdate
 import team.exit_1.repo.backend.core.service.domain.data.constant.ConversationParticipantType
+import java.time.LocalDateTime
 
 @Table(name = "tb_messages")
 @Entity
@@ -28,4 +29,7 @@ class Message {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     var role: ConversationParticipantType? = null
+
+    @Column(nullable = false)
+    var timestamp: LocalDateTime? = null
 }
