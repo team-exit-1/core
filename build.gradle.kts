@@ -31,8 +31,12 @@ dependencies {
     // Kotlin
     implementation(Dependencies.KOTLIN_REFLECT)
 
-    // Spring Cloud
+    // OpenFeign
     implementation(Dependencies.SPRING_CLOUD_STARTER_OPENFEIGN)
+    implementation(Dependencies.OPEN_FEIGN_JACKSON)
+
+    // SpringDoc OpenAPI
+    implementation(Dependencies.SPRING_DOC_OPENAPI_SWAGGER_UI)
 
     // Database
     runtimeOnly(Dependencies.MYSQL_CONNECTOR)

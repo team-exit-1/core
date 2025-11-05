@@ -9,8 +9,12 @@ object Dependencies {
     // Kotlin
     const val KOTLIN_REFLECT = "org.jetbrains.kotlin:kotlin-reflect"
 
-    // Spring Cloud
-    const val SPRING_CLOUD_STARTER_OPENFEIGN = "org.springframework.cloud:spring-cloud-starter-openfeign"
+    // OpenFeign
+    const val SPRING_CLOUD_STARTER_OPENFEIGN = "org.springframework.cloud:spring-cloud-starter-openfeign:${DependencyVersion.SPRING_CLOUD_STARTER_OPENFEIGN}"
+    const val OPEN_FEIGN_JACKSON = "io.github.openfeign:feign-jackson:${DependencyVersion.OPENFEIGN_JACKSON}"
+
+    // SpringDoc OpenAPI
+    const val SPRING_DOC_OPENAPI_SWAGGER_UI = "org.springdoc:springdoc-openapi-starter-webmvc-ui:${DependencyVersion.SPRING_DOC_OPENAPI_SWAGGER_UI}"
 
     // Database
     const val MYSQL_CONNECTOR = "com.mysql:mysql-connector-j"
