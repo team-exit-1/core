@@ -1,4 +1,4 @@
-package team.exit_1.backend.core.global.common.wrapper
+package team.exit_1.backend.core.global.common.logging.wrapper
 
 import jakarta.servlet.ReadListener
 import jakarta.servlet.ServletInputStream
@@ -12,7 +12,7 @@ import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
-class CachedBodyRequestWrapper
+class CachedRequestBodyWrapper
     @Throws(IOException::class)
     constructor(
         request: HttpServletRequest,

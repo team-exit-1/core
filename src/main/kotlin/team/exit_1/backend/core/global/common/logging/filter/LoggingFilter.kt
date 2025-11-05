@@ -1,20 +1,19 @@
-package team.exit_1.backend.core.global.common
+package team.exit_1.backend.core.global.common.logging.filter
 
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.util.AntPathMatcher
 import org.springframework.util.StringUtils
 import org.springframework.web.filter.OncePerRequestFilter
 import org.springframework.web.util.ContentCachingResponseWrapper
-import team.exit_1.backend.core.global.common.wrapper.CachedBodyRequestWrapper
+import team.exit_1.backend.core.global.common.logging.wrapper.CachedRequestBodyWrapper
 import team.exit_1.backend.core.global.config.logger
 import java.io.IOException
 import java.nio.charset.StandardCharsets
-import java.util.*
+import java.util.UUID
 
 @Component
 class LoggingFilter : OncePerRequestFilter() {
@@ -92,9 +91,9 @@ class LoggingFilter : OncePerRequestFilter() {
         }
     }
 
-    private fun createCachedRequest(request: HttpServletRequest): CachedBodyRequestWrapper? =
+    private fun createCachedRequest(request: HttpServletRequest): CachedRequestBodyWrapper? =
         try {
-            CachedBodyRequestWrapper(request)
+            CachedRequestBodyWrapper(request)
         } catch (e: IOException) {
             logger.error("요청 바디 캐싱 중 예외 발생 - 원본 요청으로 진행합니다.", e)
             null
