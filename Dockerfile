@@ -1,7 +1,9 @@
 FROM gradle:8.14-jdk21-alpine AS build
 WORKDIR /app
 
-COPY build.gradle.kts settings.gradle.kts gradle.properties ./
+COPY gradle.properties ./
+
+COPY build.gradle.kts settings.gradle.kts ./
 COPY buildSrc ./buildSrc
 
 RUN gradle --parallel --build-cache build --no-daemon -x test --dry-run || true
@@ -9,8 +11,8 @@ RUN gradle --parallel --build-cache build --no-daemon -x test --dry-run || true
 COPY src ./src
 
 RUN gradle --parallel --build-cache build --no-daemon -x test && \
-    find /root/.kotlin -type s -delete 2>/dev/null && \
-    rm -rf /root/.gradle /root/.kotlin /root/.cache /app/.gradle /app/.kotlin /tmp/* 2>/dev/null || true
+    find / -type s \( -path "*/.kotlin/*" -o -path "*/.gradle/*" \) -delete 2>/dev/null || true && \
+    rm -rf /root/.kotlin/daemon* /root/.gradle/daemon* /root/.cache /app/.gradle /app/.kotlin /tmp/* 2>/dev/null || true
 
 FROM alpine:latest AS extractor
 WORKDIR /extract
