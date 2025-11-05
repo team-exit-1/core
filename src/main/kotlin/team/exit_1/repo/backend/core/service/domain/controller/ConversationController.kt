@@ -93,4 +93,20 @@ class ConversationController(
     ): ConversationResponse {
         return disableConversationService.execute(conversationId)
     }
+
+    @GetMapping("/active")
+    @Operation(summary = "활성 대화 목록 조회", description = "현재 활성 상태인 모든 대화의 목록을 조회합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "활성 대화 목록이 성공적으로 조회되었습니다.",
+            )
+        ]
+    )
+    fun getActiveConversations(): List<ConversationResponse> {
+        // 이 메서드는 활성 대화 목록을 반환하는 로직을 구현해야 합니다.
+        // 예시로 빈 리스트를 반환하도록 작성했습니다.
+        return emptyList()
+    }
 }
