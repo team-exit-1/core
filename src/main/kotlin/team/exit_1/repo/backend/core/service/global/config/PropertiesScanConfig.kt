@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @ConfigurationPropertiesScan(
     basePackages = [
-        "team.exit_1.backend.core.global.security.data",
+        "team.exit_1.repo.backend.core.service.global.security.data",
     ],
 )
 class PropertiesScanConfig
