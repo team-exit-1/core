@@ -3,11 +3,9 @@ package team.exit_1.repo.backend.core.service.domain.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import team.exit_1.repo.backend.core.service.domain.data.dto.response.ConversationResponse
 import team.exit_1.repo.backend.core.service.domain.service.CreateConversationService
@@ -30,14 +28,12 @@ class ConversationController(
         value = [
             ApiResponse(
                 responseCode = "201",
-                description = "대화가 성공적으로 생성되었습니다.",
-                content = [Content()]
+                description = "대화가 성공적으로 생성되었습니다."
             )
         ]
     )
-    @ResponseStatus(HttpStatus.CREATED)
-    fun createConversation(): ConversationResponse {
-        return createConversationService.execute()
+    fun createConversation(): CommonApiResponse<ConversationResponse> {
+        return CommonApiResponse.created("대화가 성공적으로 생성되었습니다", createConversationService.execute())
     }
 
     @DeleteMapping("/{conversationId}")
@@ -45,7 +41,7 @@ class ConversationController(
     @ApiResponses(
         value = [
             ApiResponse(
-                responseCode = "204",
+                responseCode = "200",
                 description = "대화가 성공적으로 삭제되었습니다."
             ),
             ApiResponse(
@@ -55,12 +51,12 @@ class ConversationController(
             )
         ]
     )
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteConversation(
         @Parameter(description = "삭제할 대화 ID", example = "conv_550e8400-e29b-41d4-a716-446655440000")
         @PathVariable conversationId: String
-    ) {
+    ): CommonApiResponse<Nothing> {
         deleteConversationService.execute(conversationId)
+        return CommonApiResponse.success("대화가 성공적으로 삭제되었습니다")
     }
 
     @PatchMapping("/{conversationId}/disable")
@@ -81,8 +77,8 @@ class ConversationController(
     fun disableConversation(
         @Parameter(description = "종료할 대화 ID", example = "conv_550e8400-e29b-41d4-a716-446655440000")
         @PathVariable conversationId: String
-    ): ConversationResponse {
-        return disableConversationService.execute(conversationId)
+    ): CommonApiResponse<ConversationResponse> {
+        return CommonApiResponse.success("대화가 성공적으로 종료되었습니다", disableConversationService.execute(conversationId))
     }
 
     @GetMapping("/active")
@@ -91,13 +87,13 @@ class ConversationController(
         value = [
             ApiResponse(
                 responseCode = "200",
-                description = "활성 대화 목록이 성공적으로 조회되었습니다.",
+                description = "활성 대화 목록이 성공적으로 조회되었습니다."
             )
         ]
     )
-    fun getActiveConversations(): List<ConversationResponse> {
+    fun getActiveConversations(): CommonApiResponse<List<ConversationResponse>> {
         // 이 메서드는 활성 대화 목록을 반환하는 로직을 구현해야 합니다.
         // 예시로 빈 리스트를 반환하도록 작성했습니다.
-        return emptyList()
+        return CommonApiResponse.success("활성 대화 목록이 성공적으로 조회되었습니다", emptyList())
     }
 }
