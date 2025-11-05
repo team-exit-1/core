@@ -18,6 +18,14 @@ spring:
     user:
       name: admin
       password: admin
+    cors:
+      allowed-origins:
+        - 'http://localhost:3000'
+        - 'http://localhost:3001'
+        - 'http://localhost:8080'
+        - 'http://localhost:8081'
+        - 'https://repo-core-hackerton.dsmhs.kr'
+        - 'https://repo-hackerton.dsmhs.kr'
 
 server:
   port: 8081
