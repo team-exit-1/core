@@ -9,9 +9,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
-import team.exit_1.repo.backend.core.service.domain.data.dto.response.CreateConversationResponse
+import team.exit_1.repo.backend.core.service.domain.data.dto.response.ConversationResponse
 import team.exit_1.repo.backend.core.service.domain.service.CreateConversationService
 import team.exit_1.repo.backend.core.service.domain.service.DeleteConversationService
+import team.exit_1.repo.backend.core.service.domain.service.DisableConversationService
 import team.exit_1.repo.backend.core.service.global.common.error.data.response.ErrorResponse
 
 @RestController
@@ -20,6 +21,7 @@ import team.exit_1.repo.backend.core.service.global.common.error.data.response.E
 class ConversationController(
     private val createConversationService: CreateConversationService,
     private val deleteConversationService: DeleteConversationService,
+    private val disableConversationService: DisableConversationService
 ) {
 
     @PostMapping
@@ -29,12 +31,15 @@ class ConversationController(
             ApiResponse(
                 responseCode = "201",
                 description = "대화가 성공적으로 생성되었습니다.",
-                content = [Content(mediaType = "application/json", schema = Schema(implementation = CreateConversationResponse::class))]
+                content = [Content(
+                    mediaType = "application/json",
+                    schema = Schema(implementation = ConversationResponse::class)
+                )]
             )
         ]
     )
     @ResponseStatus(HttpStatus.CREATED)
-    fun createConversation(): CreateConversationResponse {
+    fun createConversation(): ConversationResponse {
         return createConversationService.execute()
     }
 
@@ -49,7 +54,10 @@ class ConversationController(
             ApiResponse(
                 responseCode = "404",
                 description = "대화를 찾을 수 없습니다.",
-                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+                content = [Content(
+                    mediaType = "application/json",
+                    schema = Schema(implementation = ErrorResponse::class)
+                )]
             )
         ]
     )
@@ -59,5 +67,30 @@ class ConversationController(
         @PathVariable conversationId: String
     ) {
         deleteConversationService.execute(conversationId)
+    }
+
+    @PatchMapping("/{conversationId}/disable")
+    @Operation(summary = "대화 종료", description = "지정된 대화 ID의 대화를 종료(비활성화)합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "대화가 성공적으로 종료되었습니다."
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "대화를 찾을 수 없습니다.",
+                content = [Content(
+                    mediaType = "application/json",
+                    schema = Schema(implementation = ErrorResponse::class)
+                )]
+            )
+        ]
+    )
+    fun disableConversation(
+        @Parameter(description = "종료할 대화 ID", example = "conv_550e8400-e29b-41d4-a716-446655440000")
+        @PathVariable conversationId: String
+    ): ConversationResponse {
+        return disableConversationService.execute(conversationId)
     }
 }
