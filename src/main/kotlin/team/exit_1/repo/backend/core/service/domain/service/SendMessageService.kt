@@ -3,6 +3,7 @@ package team.exit_1.repo.backend.core.service.domain.service
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import team.exit_1.repo.backend.core.service.domain.data.constant.ConversationParticipantType
 import team.exit_1.repo.backend.core.service.domain.data.dto.request.SendMessageRequest
 import team.exit_1.repo.backend.core.service.domain.data.dto.response.MessageResponse
 import team.exit_1.repo.backend.core.service.domain.data.entity.Message
@@ -24,7 +25,7 @@ class SendMessageService(
         val message = Message().apply {
             this.conversationId = conversation
             this.content = request.content
-            this.role = request.role
+            this.role = ConversationParticipantType.USER
             this.timestamp = LocalDateTime.now()
         }
 

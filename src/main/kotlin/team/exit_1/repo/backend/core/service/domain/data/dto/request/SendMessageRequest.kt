@@ -7,9 +7,5 @@ import team.exit_1.repo.backend.core.service.domain.data.constant.ConversationPa
 data class SendMessageRequest(
     @field:Schema(description = "메시지 내용", example = "안녕하세요")
     @field:JsonProperty("content")
-    val content: String,
-
-    @field:Schema(description = "메시지 송신자", example = "USER")
-    @field:JsonProperty("role")
-    val role: ConversationParticipantType
+    val content: String
 )
