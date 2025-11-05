@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import team.exit_1.repo.backend.core.service.domain.data.dto.response.CreateConversationResponse
 import team.exit_1.repo.backend.core.service.domain.service.CreateConversationService
+import team.exit_1.repo.backend.core.service.domain.service.DeleteConversationService
 import team.exit_1.repo.backend.core.service.global.common.error.data.response.ErrorResponse
 
 @RestController
@@ -21,10 +22,11 @@ import team.exit_1.repo.backend.core.service.global.common.error.data.response.E
 @RequestMapping("/conversations")
 class ConversationController(
     private val createConversationService: CreateConversationService,
+    private val deleteConversationService: DeleteConversationService,
 ) {
 
     @PostMapping
-    @Operation(summary = "대화 생성", description = "새로운 대화를 생성합니다.")
+    @Operation(summary = "대화 생성", description = "새로운 대화를 생성합니다(고정된 값의 대화만 생성합니다).")
     @ApiResponses(
         value = [
             ApiResponse(
@@ -45,7 +47,7 @@ class ConversationController(
     }
 
     @DeleteMapping
-    @Operation(summary = "대화 삭제", description = "기존 대화를 삭제합니다.")
+    @Operation(summary = "대화 삭제", description = "기존 대화를 삭제합니다.(POST API로 새로 생성된 대화만 삭제할 수 있습니다)")
     @ApiResponses(
         value = [
             ApiResponse(
@@ -61,4 +63,6 @@ class ConversationController(
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteConversation() {
+        deleteConversationService.execute()
+    }
 }
