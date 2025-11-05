@@ -15,7 +15,7 @@ import team.exit_1.repo.backend.core.service.global.common.response.data.reponse
 
 @RestController
 @Tag(name = "대화형 서비스 API", description = "대화형 서비스 관련 API입니다.")
-@RequestMapping("/conversations")
+@RequestMapping("/v1/conversations")
 class ConversationController(
     private val createConversationService: CreateConversationService,
     private val deleteConversationService: DeleteConversationService,
