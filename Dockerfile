@@ -9,7 +9,8 @@ RUN gradle --parallel --build-cache build --no-daemon -x test --dry-run || true
 COPY src ./src
 
 RUN gradle --parallel --build-cache build --no-daemon -x test && \
-    rm -rf /root/.gradle /root/.kotlin /app/.gradle /app/.kotlin
+    find /root/.kotlin -type s -delete 2>/dev/null && \
+    rm -rf /root/.gradle /root/.kotlin /root/.cache /app/.gradle /app/.kotlin /tmp/* 2>/dev/null || true
 
 FROM alpine:latest AS extractor
 WORKDIR /extract
