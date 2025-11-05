@@ -1,4 +1,4 @@
-package team.exit_1.repo.backend.core.service.domain.data
+package team.exit_1.repo.backend.core.service.domain.data.entity
 
 import jakarta.persistence.*
 import org.hibernate.annotations.DynamicInsert

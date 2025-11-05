@@ -1,4 +1,4 @@
-package team.exit_1.repo.backend.core.service.domain.data
+package team.exit_1.repo.backend.core.service.domain.data.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
