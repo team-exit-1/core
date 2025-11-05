@@ -38,8 +38,8 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers(
-                        "/actuator/**",
-                    ).permitAll().anyRequest().authenticated()
+                        "/v3/api-docs/**","/swagger-ui/**","/actuator/**",
+                    ).permitAll().anyRequest().permitAll()
             }
 
         return http.build()
