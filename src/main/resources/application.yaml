@@ -1,6 +1,6 @@
 spring:
   application:
-    name: core-service
+    name: repo-backend-core-service
   datasource:
     url: jdbc:mysql://localhost:3306/exit1db
     driver-class-name: com.mysql.cj.jdbc.Driver

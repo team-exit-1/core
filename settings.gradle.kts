@@ -1,1 +1,1 @@
-rootProject.name = "core"
+rootProject.name = "refo-backend-core-service"
