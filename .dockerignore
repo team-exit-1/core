@@ -16,3 +16,4 @@ cloud-diagram.py
 .editorconfig
 build
 !build/libs/*.jar
+.kotlin
