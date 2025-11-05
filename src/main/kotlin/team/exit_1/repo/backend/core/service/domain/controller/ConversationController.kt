@@ -13,7 +13,7 @@ import team.exit_1.repo.backend.core.service.domain.data.dto.response.Conversati
 import team.exit_1.repo.backend.core.service.domain.service.CreateConversationService
 import team.exit_1.repo.backend.core.service.domain.service.DeleteConversationService
 import team.exit_1.repo.backend.core.service.domain.service.DisableConversationService
-import team.exit_1.repo.backend.core.service.global.common.error.data.response.ErrorResponse
+import team.exit_1.repo.backend.core.service.global.common.response.data.reponse.CommonApiResponse
 
 @RestController
 @Tag(name = "대화형 서비스 API", description = "대화형 서비스 관련 API입니다.")
@@ -31,10 +31,7 @@ class ConversationController(
             ApiResponse(
                 responseCode = "201",
                 description = "대화가 성공적으로 생성되었습니다.",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ConversationResponse::class)
-                )]
+                content = [Content()]
             )
         ]
     )
@@ -54,10 +51,7 @@ class ConversationController(
             ApiResponse(
                 responseCode = "404",
                 description = "대화를 찾을 수 없습니다.",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ErrorResponse::class)
-                )]
+                content = [Content()]
             )
         ]
     )
@@ -80,10 +74,7 @@ class ConversationController(
             ApiResponse(
                 responseCode = "404",
                 description = "대화를 찾을 수 없습니다.",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ErrorResponse::class)
-                )]
+                content = [Content()]
             )
         ]
     )

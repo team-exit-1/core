@@ -38,29 +38,32 @@ class SwaggerConfig {
                 Components()
                     .schemas(
                         mutableMapOf(
-                            "ErrorResponse" to createErrorResponseSchema()
+                            "CommonApiResponse" to createCommonApiResponseSchema()
                         )
                     )
                     .responses(
                         mutableMapOf(
-                            "BadRequest" to createErrorApiResponse(400, "잘못된 요청입니다"),
-                            "Unauthorized" to createErrorApiResponse(401, "인증이 필요합니다"),
-                            "Forbidden" to createErrorApiResponse(403, "접근 권한이 없습니다"),
-                            "NotFound" to createErrorApiResponse(404, "리소스를 찾을 수 없습니다"),
-                            "InternalServerError" to createErrorApiResponse(500, "내부 서버 오류가 발생했습니다")
+                            "BadRequest" to createErrorApiResponse(400, "BAD_REQUEST", "잘못된 요청입니다"),
+                            "Unauthorized" to createErrorApiResponse(401, "UNAUTHORIZED", "인증이 필요합니다"),
+                            "Forbidden" to createErrorApiResponse(403, "FORBIDDEN", "접근 권한이 없습니다"),
+                            "NotFound" to createErrorApiResponse(404, "NOT_FOUND", "리소스를 찾을 수 없습니다"),
+                            "InternalServerError" to createErrorApiResponse(500, "INTERNAL_SERVER_ERROR", "내부 서버 오류가 발생했습니다")
                         )
                     )
             )
 
-    private fun createErrorResponseSchema(): Schema<*> =
+    private fun createCommonApiResponseSchema(): Schema<*> =
         Schema<Any>().apply {
             type = "object"
-            addProperty("status", Schema<Int>().type("integer").example(400))
-            addProperty("message", Schema<String>().type("string").example("오류 메시지"))
+            addProperty("status", Schema<String>().type("string").example("OK"))
+            addProperty("code", Schema<Int>().type("integer").example(200))
+            addProperty("message", Schema<String>().type("string").example("성공했습니다"))
+            addProperty("data", Schema<Any>().type("object").nullable(true))
         }
 
     private fun createErrorApiResponse(
         statusCode: Int,
+        statusName: String,
         message: String,
     ): ApiResponse =
         ApiResponse()
@@ -70,11 +73,13 @@ class SwaggerConfig {
                     .addMediaType(
                         "application/json",
                         MediaType()
-                            .schema(Schema<Any>().`$ref`("#/components/schemas/ErrorResponse"))
+                            .schema(Schema<Any>().`$ref`("#/components/schemas/CommonApiResponse"))
                             .example(
                                 mapOf(
-                                    "status" to statusCode,
-                                    "message" to message
+                                    "status" to statusName,
+                                    "code" to statusCode,
+                                    "message" to message,
+                                    "data" to null
                                 )
                             )
                     )
