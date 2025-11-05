@@ -78,7 +78,7 @@ class ConversationController(
     }
 
     @PatchMapping("/{conversationId}/disable")
-    @Operation(summary = "대화 종료", description = "지정된 대화 ID의 대화를 종료(비활성화)합니다.")
+    @Operation(summary = "대화 종료", description = "지정된 대화 ID의 대화를 종료(비활성화)하고 이를 RAG 서버에 저장합니다.")
     @ApiResponses(
         value = [
             ApiResponse(
