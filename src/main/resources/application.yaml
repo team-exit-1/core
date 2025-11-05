@@ -2,10 +2,10 @@ spring:
   application:
     name: repo-backend-core-service
   datasource:
-    url: jdbc:mysql://localhost:3306/exit1db
+    url: jdbc:mysql://${RDB_HOST}:${RDB_PORT}/${RDB_DATABASE}
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password: password
+    username: ${RDB_USERNAME}
+    password: ${RDB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -31,7 +31,7 @@ server:
   port: 8081
 
 llm-service:
-  url: http://localhost:3000
+  url: ${LLM_SERVICE_URL:http://localhost:3000}
 
 springdoc:
   api-docs:
