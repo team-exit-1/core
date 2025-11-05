@@ -20,6 +20,18 @@ server:
 llm-service:
   url: http://localhost:3000
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+
 logging:
   level:
     team.exit_1.backend.core: DEBUG
