@@ -23,6 +23,7 @@ import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.Ques
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.QuizDifficultyRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.response.GameQuestionResponse
 import java.time.LocalDateTime
+import java.util.concurrent.CompletableFuture
 
 @Service
 class QueryQuizzesService(
@@ -53,76 +54,102 @@ class QueryQuizzesService(
             }
         val difficultyHint = QuizDifficultyRequest.from(gameSession.currentDifficulty)
 
-        val llmResponse =
-            llmServiceClient.generateGameQuestion(
-                GameQuestionRequest(
-                    userId = userId,
-                    questionType = questionType,
-                    difficultyHint = difficultyHint,
-                ),
-            )
-
-        if (!llmResponse.success || llmResponse.data == null) {
-            throw ExpectedException(
-                message = "LLM 서버에서 질문 생성에 실패했습니다: ${llmResponse.error?.message}",
-                statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
-            )
-        }
-
-        val questionResponse = objectMapper.convertValue(llmResponse.data, GameQuestionResponse::class.java)
-
-        val parsedQuestionType =
-            questionResponse.parseQuestionType()
-                ?: throw ExpectedException(
-                    message = "LLM 서버에서 알 수 없는 질문 타입을 반환했습니다: ${questionResponse.questionType}",
-                    statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
-                )
-
-        val quiz =
-            Quiz().apply {
-                this.llmQuestionId = questionResponse.questionId
-                this.questionType = parsedQuestionType
-                this.question = questionResponse.question
-                this.correctAnswer = questionResponse.correctAnswer
-                this.difficulty = gameSession.currentDifficulty
-                this.topic = questionResponse.metadata.topic
-                this.basedOnConversation = questionResponse.basedOnConversation
-                this.memoryScore = questionResponse.metadata.memoryScore
-                this.daysSinceConversation = questionResponse.metadata.daysSinceConversation
-                this.category = questionResponse.metadata.topic
-
-                if (questionResponse.options != null) {
-                    this.options = objectMapper.writeValueAsString(questionResponse.options)
-                }
-            }
-
-        val savedQuiz = quizJpaRepository.save(quiz)
-
-        // QuizResponse 생성
-        val quizOptions =
-            savedQuiz.options?.let { optionsJson ->
-                val type = object : TypeReference<List<Map<String, String>>>() {}
-                objectMapper.readValue(optionsJson, type).map { option ->
-                    QuizOption(
-                        id = option["id"] ?: "",
-                        text = option["text"] ?: "",
+        // 5개의 문제를 비동기로 병렬 요청
+        val futures =
+            (1..5).map {
+                CompletableFuture.supplyAsync {
+                    llmServiceClient.generateGameQuestion(
+                        GameQuestionRequest(
+                            userId = userId,
+                            questionType = questionType,
+                            difficultyHint = difficultyHint,
+                        ),
                     )
                 }
             }
 
-        return listOf(
-            QuizResponse(
-                quizId = savedQuiz.id!!,
-                questionType = savedQuiz.questionType?.let { QuestionTypeDto.from(it) },
-                question = savedQuiz.question!!,
-                options = quizOptions,
-                difficulty = savedQuiz.difficulty,
-                topic = savedQuiz.topic,
-                basedOnConversation = savedQuiz.basedOnConversation,
-                category = savedQuiz.category,
-                hint = savedQuiz.hint,
-            ),
-        )
+        // 모든 요청이 완료될 때까지 대기
+        val llmResponses =
+            CompletableFuture.allOf(*futures.toTypedArray())
+                .thenApply { futures.map { it.join() } }
+                .join()
+
+        // 각 응답을 Quiz로 변환하고 저장
+        val quizResponses =
+            llmResponses.mapNotNull { llmResponse ->
+                if (!llmResponse.success || llmResponse.data == null) {
+                    // 실패한 요청은 건너뜀
+                    null
+                } else {
+                    try {
+                        val questionResponse = objectMapper.convertValue(llmResponse.data, GameQuestionResponse::class.java)
+
+                        val parsedQuestionType =
+                            questionResponse.parseQuestionType()
+                                ?: throw ExpectedException(
+                                    message = "LLM 서버에서 알 수 없는 질문 타입을 반환했습니다: ${questionResponse.questionType}",
+                                    statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
+                                )
+
+                        val quiz =
+                            Quiz().apply {
+                                this.llmQuestionId = questionResponse.questionId
+                                this.questionType = parsedQuestionType
+                                this.question = questionResponse.question
+                                this.correctAnswer = questionResponse.correctAnswer
+                                this.difficulty = gameSession.currentDifficulty
+                                this.topic = questionResponse.metadata.topic
+                                this.basedOnConversation = questionResponse.basedOnConversation
+                                this.memoryScore = questionResponse.metadata.memoryScore
+                                this.daysSinceConversation = questionResponse.metadata.daysSinceConversation
+                                this.category = questionResponse.metadata.topic
+
+                                if (questionResponse.options != null) {
+                                    this.options = objectMapper.writeValueAsString(questionResponse.options)
+                                }
+                            }
+
+                        val savedQuiz = quizJpaRepository.save(quiz)
+
+                        // QuizResponse 생성
+                        val quizOptions =
+                            savedQuiz.options?.let { optionsJson ->
+                                val type = object : TypeReference<List<Map<String, String>>>() {}
+                                objectMapper.readValue(optionsJson, type).map { option ->
+                                    QuizOption(
+                                        id = option["id"] ?: "",
+                                        text = option["text"] ?: "",
+                                    )
+                                }
+                            }
+
+                        QuizResponse(
+                            quizId = savedQuiz.id!!,
+                            questionType = savedQuiz.questionType?.let { QuestionTypeDto.from(it) },
+                            question = savedQuiz.question!!,
+                            options = quizOptions,
+                            difficulty = savedQuiz.difficulty,
+                            topic = savedQuiz.topic,
+                            basedOnConversation = savedQuiz.basedOnConversation,
+                            category = savedQuiz.category,
+                            hint = savedQuiz.hint,
+                        )
+                    } catch (e: Exception) {
+                        // 개별 퀴즈 처리 중 에러 발생 시 건너뜀
+                        null
+                    }
+                }
+            }
+
+        // 최소 1개 이상의 퀴즈가 성공적으로 생성되었는지 확인
+        if (quizResponses.isEmpty()) {
+            throw ExpectedException(
+                message = "LLM 서버에서 질문 생성에 실패했습니다.",
+                statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
+            )
+        }
+
+        return quizResponses
     }
 
     private fun validateGameSession(gameSession: GameSession) {
