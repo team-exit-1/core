@@ -30,7 +30,7 @@ class SecurityConfig(
                 cors.allowedOrigins = corsEnvironment.allowedOrigins
                 cors.addAllowedHeader("*")
                 cors.allowedMethods = HttpMethod.values().map(HttpMethod::name)
-                cors.allowCredentials = false
+                cors.allowCredentials = true
                 cors.maxAge = 3600L
                 cors
             }
