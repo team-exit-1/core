@@ -45,8 +45,8 @@ springdoc:
     enabled: true
     tags-sorter: alpha
     operations-sorter: alpha
-    url: /api/core/v3/api-docs
-    config-url: /api/core/v3/api-docs/swagger-config
+    url: ${SWAGGER_URL:/api/core/v3/api-docs}
+    config-url: ${SWAGGER_CONFIG_URL:/api/core/v3/api-docs/swagger-config}
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
