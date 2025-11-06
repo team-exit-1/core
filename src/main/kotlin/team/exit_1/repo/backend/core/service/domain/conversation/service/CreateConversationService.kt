@@ -40,7 +40,7 @@ class CreateConversationService(
 
         val greetingRequest = ChatRequest(
             userId = MOCK_USER_ID,
-            message = "인삿말과 함께 이전 대화를 상기할 수 있는 말을 해줘"
+            message = "인삿말과 함께 대화를 시작해줘."
         )
 
         logger().info("대화 시작 인사말 요청 - conversationId: $conversationId, userId: $MOCK_USER_ID")
