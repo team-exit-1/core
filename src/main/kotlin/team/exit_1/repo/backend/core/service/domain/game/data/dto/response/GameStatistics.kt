@@ -34,18 +34,3 @@ data class GameStatistics(
     @field:JsonProperty("accuracy_by_difficulty")
     val accuracyByDifficulty: Map<QuizDifficulty, DifficultyStatistics>
 )
-
-@Schema(description = "난이도별 통계")
-data class DifficultyStatistics(
-    @field:Schema(description = "문제 수", example = "3")
-    @field:JsonProperty("total")
-    val total: Int,
-
-    @field:Schema(description = "정답 수", example = "2")
-    @field:JsonProperty("correct")
-    val correct: Int,
-
-    @field:Schema(description = "정답률 (%)", example = "66.67")
-    @field:JsonProperty("accuracy_rate")
-    val accuracyRate: Double
-)
