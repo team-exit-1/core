@@ -1,34 +1,30 @@
 package team.exit_1.repo.backend.core.service.domain.game.service
 
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import team.exit_1.repo.backend.core.service.domain.conversation.data.repository.ConversationJpaRepository
 import team.exit_1.repo.backend.core.service.domain.game.data.constant.GameSessionStatus
 import team.exit_1.repo.backend.core.service.domain.game.data.constant.QuizDifficulty
 import team.exit_1.repo.backend.core.service.domain.game.data.dto.response.GameSessionResponse
 import team.exit_1.repo.backend.core.service.domain.game.data.entity.GameSession
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.GameSessionJpaRepository
-import team.exit_1.repo.backend.core.service.global.common.error.exception.ExpectedException
+import team.exit_1.repo.backend.core.service.global.config.MockDataConfig
 import java.time.LocalDateTime
 import java.util.*
 
 @Service
 class StartGameSessionService(
-    private val conversationJpaRepository: ConversationJpaRepository,
     private val gameSessionJpaRepository: GameSessionJpaRepository
 ) {
     @Transactional
-    fun execute(conversationId: String): GameSessionResponse {
-        val conversation = conversationJpaRepository.findById(conversationId)
-            .orElseThrow { ExpectedException(message = "대화가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
+    fun execute(): GameSessionResponse {
+        val userId = MockDataConfig.MOCK_USER_ID
 
         // 이미 진행중인 세션이 있는지 확인
-        val existingSession = gameSessionJpaRepository.findByConversationAndStatus(conversation, GameSessionStatus.IN_PROGRESS)
+        val existingSession = gameSessionJpaRepository.findByUserIdAndStatus(userId, GameSessionStatus.IN_PROGRESS)
         if (existingSession != null) {
             return GameSessionResponse(
                 sessionId = existingSession.id!!,
-                conversationId = conversation.id!!,
+                userId = existingSession.userId!!,
                 status = existingSession.status,
                 startTime = existingSession.startTime!!,
                 endTime = existingSession.endTime,
@@ -39,7 +35,7 @@ class StartGameSessionService(
 
         val gameSession = GameSession().apply {
             this.id = "session_${UUID.randomUUID()}"
-            this.conversation = conversation
+            this.userId = userId
             this.status = GameSessionStatus.IN_PROGRESS
             this.startTime = LocalDateTime.now()
             this.totalScore = 0
@@ -50,7 +46,7 @@ class StartGameSessionService(
 
         return GameSessionResponse(
             sessionId = savedSession.id!!,
-            conversationId = conversation.id!!,
+            userId = savedSession.userId!!,
             status = savedSession.status,
             startTime = savedSession.startTime!!,
             endTime = savedSession.endTime,

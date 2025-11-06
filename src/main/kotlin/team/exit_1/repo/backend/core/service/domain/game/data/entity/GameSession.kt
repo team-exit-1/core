@@ -3,7 +3,6 @@ package team.exit_1.repo.backend.core.service.domain.game.data.entity
 import jakarta.persistence.*
 import org.hibernate.annotations.DynamicInsert
 import org.hibernate.annotations.DynamicUpdate
-import team.exit_1.repo.backend.core.service.domain.conversation.data.entity.Conversation
 import team.exit_1.repo.backend.core.service.domain.game.data.constant.GameSessionStatus
 import team.exit_1.repo.backend.core.service.domain.game.data.constant.QuizDifficulty
 import java.time.LocalDateTime
@@ -17,9 +16,8 @@ class GameSession {
     @Column(name = "session_id")
     var id: String? = null
 
-    @JoinColumn(name = "conversation_id", nullable = false)
-    @ManyToOne(targetEntity = Conversation::class)
-    var conversation: Conversation? = null
+    @Column(name = "user_id", nullable = false)
+    var userId: String? = null
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

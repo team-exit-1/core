@@ -24,25 +24,18 @@ class GameController(
     private val queryGameProgressService: QueryGameProgressService
 ) {
 
-    @PostMapping("/conversations/{conversationId}/game-sessions")
-    @Operation(summary = "게임 세션 시작", description = "특정 대화에서 새로운 게임 세션을 시작합니다.")
+    @PostMapping("/game-sessions")
+    @Operation(summary = "게임 세션 시작", description = "사용자의 새로운 게임 세션을 시작합니다.")
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "201",
                 description = "게임 세션이 성공적으로 시작되었습니다."
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "대화를 찾을 수 없습니다."
             )
         ]
     )
-    fun startGameSession(
-        @Parameter(description = "대화 ID", example = "conv_550e8400-e29b-41d4-a716-446655440000")
-        @PathVariable conversationId: String
-    ): CommonApiResponse<GameSessionResponse> {
-        return CommonApiResponse.created("게임 세션이 성공적으로 시작되었습니다", startGameSessionService.execute(conversationId))
+    fun startGameSession(): CommonApiResponse<GameSessionResponse> {
+        return CommonApiResponse.created("게임 세션이 성공적으로 시작되었습니다", startGameSessionService.execute())
     }
 
     @GetMapping("/game-sessions/{sessionId}/quizzes")

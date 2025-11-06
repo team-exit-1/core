@@ -11,9 +11,9 @@ data class GameSessionResponse(
     @field:JsonProperty("session_id")
     val sessionId: String,
 
-    @field:Schema(description = "대화 ID", example = "conv_550e8400-e29b-41d4-a716-446655440000")
-    @field:JsonProperty("conversation_id")
-    val conversationId: String,
+    @field:Schema(description = "사용자 ID", example = "user_550e8400-e29b-41d4-a716-446655440000")
+    @field:JsonProperty("user_id")
+    val userId: String,
 
     @field:Schema(description = "세션 상태", example = "IN_PROGRESS")
     @field:JsonProperty("status")

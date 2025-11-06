@@ -35,10 +35,7 @@ class SubmitQuizAnswerService(
         val quiz = quizJpaRepository.findById(request.quizId)
             .orElseThrow { ExpectedException(message = "퀴즈가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
 
-        val conversation = gameSession.conversation
-            ?: throw ExpectedException(message = "대화 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
-
-        val userId = conversation.userId
+        val userId = gameSession.userId
             ?: throw ExpectedException(message = "사용자 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
 
         // 정답 확인 (대소문자 구분 없이, 공백 제거)

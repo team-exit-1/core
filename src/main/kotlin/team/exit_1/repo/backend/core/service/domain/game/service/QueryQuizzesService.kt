@@ -32,10 +32,7 @@ class QueryQuizzesService(
         val gameSession = gameSessionJpaRepository.findById(sessionId)
             .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
 
-        val conversation = gameSession.conversation
-            ?: throw ExpectedException(message = "대화 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
-
-        val userId = conversation.userId
+        val userId = gameSession.userId
             ?: throw ExpectedException(message = "사용자 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
 
         // LLM 서버에서 질문 생성 (난이도에 따라 ox 또는 multiple_choice)
