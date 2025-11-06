@@ -1,5 +1,6 @@
 package team.exit_1.repo.backend.core.service.domain.game.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -12,13 +13,19 @@ import team.exit_1.repo.backend.core.service.domain.game.data.repository.GameSes
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.QuizAttemptJpaRepository
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.QuizJpaRepository
 import team.exit_1.repo.backend.core.service.global.common.error.exception.ExpectedException
+import team.exit_1.repo.backend.core.service.global.config.logger
+import team.exit_1.repo.backend.core.service.global.thirdparty.client.LlmServiceClient
+import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.GameResultRequest
+import team.exit_1.repo.backend.core.service.global.thirdparty.data.response.GameResultResponse
 import java.time.LocalDateTime
 
 @Service
 class SubmitQuizAnswerService(
     private val gameSessionJpaRepository: GameSessionJpaRepository,
     private val quizJpaRepository: QuizJpaRepository,
-    private val quizAttemptJpaRepository: QuizAttemptJpaRepository
+    private val quizAttemptJpaRepository: QuizAttemptJpaRepository,
+    private val llmServiceClient: LlmServiceClient,
+    private val objectMapper: ObjectMapper
 ) {
     @Transactional
     fun execute(sessionId: String, request: SubmitQuizAnswerRequest): QuizAttemptResponse {
@@ -27,6 +34,12 @@ class SubmitQuizAnswerService(
 
         val quiz = quizJpaRepository.findById(request.quizId)
             .orElseThrow { ExpectedException(message = "퀴즈가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
+
+        val conversation = gameSession.conversation
+            ?: throw ExpectedException(message = "대화 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
+
+        val userId = conversation.userId
+            ?: throw ExpectedException(message = "사용자 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
 
         // 정답 확인 (대소문자 구분 없이, 공백 제거)
         val isCorrect = quiz.correctAnswer?.trim()?.equals(request.answer.trim(), ignoreCase = true) ?: false
@@ -56,10 +69,41 @@ class SubmitQuizAnswerService(
 
         // 게임 세션 점수 업데이트
         gameSession.totalScore += score
-        
-        // 난이도 자동 조절 (최근 5문제 기준으로 정답률 80% 이상이면 난이도 상승)
-        adjustDifficulty(gameSession)
-        
+
+        // LLM 서버에 결과 전송 및 평가 받기
+        try {
+            if (quiz.llmQuestionId != null) {
+                val llmResponse = llmServiceClient.evaluateGameResult(
+                    GameResultRequest(
+                        userId = userId,
+                        questionId = quiz.llmQuestionId!!,
+                        userAnswer = request.answer,
+                        isCorrect = isCorrect,
+                        gameSessionId = sessionId
+                    )
+                )
+
+                if (llmResponse.success && llmResponse.data != null) {
+                    val resultResponse = objectMapper.convertValue(llmResponse.data, GameResultResponse::class.java)
+
+                    logger().info(
+                        "게임 결과 평가 완료 - Topic: ${resultResponse.memoryEvaluation.topic}, " +
+                        "RetentionScore: ${resultResponse.memoryEvaluation.retentionScore}, " +
+                        "Recommendation: ${resultResponse.memoryEvaluation.recommendation}"
+                    )
+
+                    // LLM 제안에 따라 난이도 조절
+                    updateDifficulty(gameSession, resultResponse.nextQuestionSuggestion.difficulty)
+                } else {
+                    logger().warn("LLM 서버 평가 실패: ${llmResponse.error?.message}. 현재 난이도 유지")
+                }
+            } else {
+                logger().info("LLM QuestionId가 없어 난이도 유지")
+            }
+        } catch (e: Exception) {
+            logger().error("LLM 서버 평가 중 오류 발생. 현재 난이도 유지", e)
+        }
+
         gameSessionJpaRepository.save(gameSession)
 
         return QuizAttemptResponse(
@@ -72,29 +116,16 @@ class SubmitQuizAnswerService(
         )
     }
 
-    private fun adjustDifficulty(gameSession: GameSession) {
-        val recentAttempts = quizAttemptJpaRepository.findAllByGameSession(gameSession)
-            .sortedByDescending { it.attemptTime }
-            .take(5)
+    private fun updateDifficulty(gameSession: GameSession, suggestedDifficulty: String) {
+        val newDifficulty = QuizDifficulty.fromString(suggestedDifficulty)
+        if (newDifficulty == null) {
+            logger().warn("알 수 없는 난이도 값: $suggestedDifficulty. 현재 난이도 유지")
+            return
+        }
 
-        if (recentAttempts.size < 5) return
-
-        val correctCount = recentAttempts.count { it.isCorrect }
-        val accuracyRate = correctCount.toDouble() / recentAttempts.size
-
-        when {
-            accuracyRate >= 0.8 && gameSession.currentDifficulty == QuizDifficulty.EASY -> {
-                gameSession.currentDifficulty = QuizDifficulty.MEDIUM
-            }
-            accuracyRate >= 0.8 && gameSession.currentDifficulty == QuizDifficulty.MEDIUM -> {
-                gameSession.currentDifficulty = QuizDifficulty.HARD
-            }
-            accuracyRate < 0.4 && gameSession.currentDifficulty == QuizDifficulty.HARD -> {
-                gameSession.currentDifficulty = QuizDifficulty.MEDIUM
-            }
-            accuracyRate < 0.4 && gameSession.currentDifficulty == QuizDifficulty.MEDIUM -> {
-                gameSession.currentDifficulty = QuizDifficulty.EASY
-            }
+        if (newDifficulty != gameSession.currentDifficulty) {
+            logger().info("난이도 변경: ${gameSession.currentDifficulty} -> $newDifficulty (LLM 제안)")
+            gameSession.currentDifficulty = newDifficulty
         }
     }
 }
