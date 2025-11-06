@@ -18,12 +18,3 @@ data class MessageResponse(
     @field:JsonProperty("context_used")
     val contextUsed: ContextUsageInfo?,
 )
-
-data class ContextUsageInfo(
-    @field:Schema(description = "사용된 이전 대화 수", example = "5")
-    @field:JsonProperty("total_conversations")
-    val totalConversations: Int,
-    @field:Schema(description = "가장 높은 유사도 점수", example = "0.95")
-    @field:JsonProperty("top_score")
-    val topScore: Float,
-)
