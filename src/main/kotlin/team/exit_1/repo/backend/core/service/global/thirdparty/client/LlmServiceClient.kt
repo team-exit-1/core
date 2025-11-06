@@ -4,6 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.AnalysisRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.GameQuestionRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.GameResultRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.response.LlmApiResponse
@@ -26,5 +27,10 @@ interface LlmServiceClient {
     @PostMapping("/api/game/result")
     fun evaluateGameResult(
         @RequestBody request: GameResultRequest,
+    ): LlmApiResponse
+
+    @PostMapping("/api/analysis")
+    fun generateAnalysis(
+        @RequestBody request: AnalysisRequest,
     ): LlmApiResponse
 }
