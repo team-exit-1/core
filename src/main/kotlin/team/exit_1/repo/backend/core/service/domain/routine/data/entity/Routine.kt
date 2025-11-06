@@ -27,6 +27,9 @@ class Routine {
     @Column(name = "times", nullable = false)
     var times: String? = null
 
+    @Column(name = "day_of_week", nullable = false, columnDefinition = "JSON")
+    var dayOfWeek: String? = null
+
     @Column(name = "created_at", nullable = false)
     var createdAt: LocalDateTime? = null
 

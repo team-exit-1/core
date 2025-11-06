@@ -25,6 +25,10 @@ data class RoutineResponse(
     @field:JsonProperty("times")
     val times: String,
 
+    @field:Schema(description = "반복 요일", example = "[\"월\", \"화\", \"금\"]")
+    @field:JsonProperty("day_of_week")
+    val dayOfWeek: List<String>,
+
     @field:Schema(description = "생성일시", example = "2024-01-01T00:00:00")
     @field:JsonProperty("created_at")
     val createdAt: LocalDateTime,
