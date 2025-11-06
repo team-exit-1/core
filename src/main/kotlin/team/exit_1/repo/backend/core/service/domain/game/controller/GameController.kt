@@ -21,7 +21,8 @@ class GameController(
     private val submitQuizAnswerService: SubmitQuizAnswerService,
     private val queryGameProgressService: QueryGameProgressService,
     private val endGameSessionService: EndGameSessionService,
-    private val queryCompletedGameSessionService: QueryCompletedGameSessionService
+    private val queryCompletedGameSessionService: QueryCompletedGameSessionService,
+    private val queryIncorrectAttemptsService: QueryIncorrectAttemptsService
 ) {
 
     @PostMapping("/game-sessions")
@@ -189,6 +190,23 @@ class GameController(
         return CommonApiResponse.success(
             "완료된 게임 세션 정보가 성공적으로 조회되었습니다",
             queryCompletedGameSessionService.execute(sessionId)
+        )
+    }
+
+    @GetMapping("/quiz-attempts/incorrect")
+    @Operation(summary = "틀린 답안 조회", description = "사용자가 최근에 틀린 답안 10개를 조회합니다. 최신순으로 정렬되어 반환됩니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "틀린 답안 목록이 성공적으로 조회되었습니다."
+            )
+        ]
+    )
+    fun getIncorrectAttempts(): CommonApiResponse<List<QuizAttemptDetail>> {
+        return CommonApiResponse.success(
+            "틀린 답안 목록이 성공적으로 조회되었습니다",
+            queryIncorrectAttemptsService.execute()
         )
     }
 }
