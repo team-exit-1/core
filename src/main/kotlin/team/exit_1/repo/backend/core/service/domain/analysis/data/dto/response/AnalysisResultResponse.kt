@@ -6,10 +6,3 @@ data class AnalysisResultResponse(
     val report: String,
     val analyzedAt: String,
 )
-
-data class DomainAnalysisDto(
-    val domain: String,
-    val score: Int,
-    val insights: List<String>,
-    val analysis: String,
-)
