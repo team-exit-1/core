@@ -10,11 +10,9 @@ RUN gradle --parallel --build-cache build --no-daemon -x test --dry-run || true
 
 COPY src ./src
 
-RUN gradle --parallel --build-cache build --no-daemon -x test ; \
-    find / -type s \( -path "*/.kotlin/*" -o -path "*/.gradle/*" \) -delete 2>/dev/null || true ; \
-    rm -rf /root/.kotlin/daemon* /root/.gradle/daemon* /root/.cache /app/.gradle /app/.kotlin 2>/dev/null || true ; \
-    find /tmp -type f -delete 2>/dev/null || true ; \
-    true
+RUN gradle --parallel --build-cache build --no-daemon -x test && \
+    find / -type s \( -path "*/.kotlin/*" -o -path "*/.gradle/*" \) -delete 2>/dev/null || true && \
+    rm -rf /root/.kotlin/daemon* /root/.gradle/daemon* /root/.cache /app/.gradle /app/.kotlin /tmp/* 2>/dev/null || true
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
