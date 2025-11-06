@@ -26,6 +26,9 @@ class CreateConversationService(
     private val llmServiceClient: LlmServiceClient,
     private val objectMapper: ObjectMapper
 ) {
+
+    private final val greetingMessage = "오늘 무슨 일이 있었는지 나에게 물어봐줘.\n"
+
     @Transactional
     fun execute(): ConversationResponse {
         val conversationId = "conv_${UUID.randomUUID()}"
@@ -40,7 +43,7 @@ class CreateConversationService(
 
         val greetingRequest = ChatRequest(
             userId = MOCK_USER_ID,
-            message = "오늘 무슨 일이 있었는지 나에게 물어봐줘.\n"
+            message = greetingMessage
         )
 
         logger().info("대화 시작 인사말 요청 - conversationId: $conversationId, userId: $MOCK_USER_ID")
