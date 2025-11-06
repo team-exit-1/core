@@ -35,6 +35,14 @@ class SubmitQuizAnswerService(
         val quiz = quizJpaRepository.findById(request.quizId)
             .orElseThrow { ExpectedException(message = "퀴즈가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
 
+        // 이미 제출된 퀴즈인지 확인
+        if (quizAttemptJpaRepository.existsByGameSessionAndQuiz(gameSession, quiz)) {
+            throw ExpectedException(
+                message = "이미 답변을 제출한 퀴즈입니다.",
+                statusCode = HttpStatus.CONFLICT
+            )
+        }
+
         val userId = gameSession.userId
             ?: throw ExpectedException(message = "사용자 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
 

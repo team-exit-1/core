@@ -2,6 +2,7 @@ package team.exit_1.repo.backend.core.service.domain.game.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -48,7 +49,8 @@ class GameController(
             ),
             ApiResponse(
                 responseCode = "404",
-                description = "게임 세션을 찾을 수 없습니다."
+                description = "게임 세션을 찾을 수 없습니다.",
+                content = [Content()]
             )
         ]
     )
@@ -69,7 +71,13 @@ class GameController(
             ),
             ApiResponse(
                 responseCode = "404",
-                description = "게임 세션 또는 퀴즈를 찾을 수 없습니다."
+                description = "게임 세션 또는 퀴즈를 찾을 수 없습니다.",
+                content = [Content()]
+            ),
+            ApiResponse(
+                responseCode = "409",
+                description = "이미 답변이 제출된 퀴즈입니다.",
+                content = [Content()]
             )
         ]
     )
@@ -91,7 +99,8 @@ class GameController(
             ),
             ApiResponse(
                 responseCode = "404",
-                description = "게임 세션을 찾을 수 없습니다."
+                description = "게임 세션을 찾을 수 없습니다.",
+                content = [Content()]
             )
         ]
     )
