@@ -1,10 +1,12 @@
 package team.exit_1.repo.backend.core.service.domain.analysis.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import team.exit_1.repo.backend.core.service.domain.analysis.data.dto.response.AnalysisResultResponse
 import team.exit_1.repo.backend.core.service.domain.analysis.data.dto.response.DomainAnalysisDto
+import team.exit_1.repo.backend.core.service.domain.analysis.event.AnalysisGeneratedEvent
 import team.exit_1.repo.backend.core.service.global.common.error.exception.ExpectedException
 import team.exit_1.repo.backend.core.service.global.thirdparty.client.LlmServiceClient
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.AnalysisRequest
@@ -17,9 +19,9 @@ import team.exit_1.repo.backend.core.service.global.thirdparty.data.response.Rep
 class GenerateAnalysisService(
     private val llmServiceClient: LlmServiceClient,
     private val objectMapper: ObjectMapper,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     fun execute(userId: String): AnalysisResultResponse {
-        // Step 1: 도메인 분석 요청
         val domainResponse = llmServiceClient.generateDomainAnalysis(AnalysisRequest(userId = userId))
 
         if (!domainResponse.success || domainResponse.data == null) {
@@ -31,7 +33,6 @@ class GenerateAnalysisService(
 
         val domainAnalysisResponse = objectMapper.convertValue(domainResponse.data, DomainAnalysisOnlyResponse::class.java)
 
-        // Step 2: 도메인 점수로 리포트 생성 요청
         val domainScores =
             domainAnalysisResponse.domains.map { domain ->
                 DomainScore(
@@ -53,20 +54,28 @@ class GenerateAnalysisService(
 
         val reportOnlyResponse = objectMapper.convertValue(reportResponse.data, ReportOnlyResponse::class.java)
 
-        // 최종 결과 조합
-        return AnalysisResultResponse(
-            userId = domainAnalysisResponse.userId,
-            domains =
-                domainAnalysisResponse.domains.map { domain ->
-                    DomainAnalysisDto(
-                        domain = domain.domain,
-                        score = domain.score,
-                        insights = domain.insights,
-                        analysis = domain.analysis,
-                    )
-                },
-            report = reportOnlyResponse.report,
-            analyzedAt = domainAnalysisResponse.analyzedAt,
+        val analysisResult =
+            AnalysisResultResponse(
+                userId = domainAnalysisResponse.userId,
+                domains =
+                    domainAnalysisResponse.domains.map { domain ->
+                        DomainAnalysisDto(
+                            domain = domain.domain,
+                            score = domain.score,
+                            insights = domain.insights,
+                            analysis = domain.analysis,
+                        )
+                    },
+                report = reportOnlyResponse.report,
+                analyzedAt = domainAnalysisResponse.analyzedAt,
+            )
+
+        eventPublisher.publishEvent(
+            AnalysisGeneratedEvent(
+                userId = userId,
+                analysisResult = analysisResult,
+            ),
         )
+        return analysisResult
     }
 }
