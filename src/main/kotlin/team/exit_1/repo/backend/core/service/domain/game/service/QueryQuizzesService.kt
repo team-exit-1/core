@@ -70,7 +70,8 @@ class QueryQuizzesService(
 
         // 모든 요청이 완료될 때까지 대기
         val llmResponses =
-            CompletableFuture.allOf(*futures.toTypedArray())
+            CompletableFuture
+                .allOf(*futures.toTypedArray())
                 .thenApply { futures.map { it.join() } }
                 .join()
 
