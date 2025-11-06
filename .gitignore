@@ -43,4 +43,4 @@ out/
 .DS_Store
 
 ### Environment Files ###
-.env.lca
+.env.local
