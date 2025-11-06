@@ -1,7 +1,6 @@
-package team.exit_1.repo.backend.core.service.domain.message.event
+package team.exit_1.repo.backend.core.service.domain.message.listener
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
@@ -12,6 +11,7 @@ import team.exit_1.repo.backend.core.service.domain.conversation.data.repository
 import team.exit_1.repo.backend.core.service.domain.message.data.constant.ConversationParticipantType
 import team.exit_1.repo.backend.core.service.domain.message.data.entity.Message
 import team.exit_1.repo.backend.core.service.domain.message.data.repository.MessageJpaRepository
+import team.exit_1.repo.backend.core.service.domain.message.event.MessageSentEvent
 import team.exit_1.repo.backend.core.service.global.config.logger
 import team.exit_1.repo.backend.core.service.global.thirdparty.client.LlmServiceClient
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.ChatRequest
@@ -25,7 +25,6 @@ class MessageSentEventListener(
     private val conversationJpaRepository: ConversationJpaRepository,
     private val objectMapper: ObjectMapper
 ) {
-
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
