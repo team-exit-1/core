@@ -8,10 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
 import team.exit_1.repo.backend.core.service.domain.game.data.dto.request.SubmitQuizAnswerRequest
-import team.exit_1.repo.backend.core.service.domain.game.data.dto.response.GameProgressResponse
-import team.exit_1.repo.backend.core.service.domain.game.data.dto.response.GameSessionResponse
-import team.exit_1.repo.backend.core.service.domain.game.data.dto.response.QuizAttemptResponse
-import team.exit_1.repo.backend.core.service.domain.game.data.dto.response.QuizResponse
+import team.exit_1.repo.backend.core.service.domain.game.data.dto.response.*
 import team.exit_1.repo.backend.core.service.domain.game.service.*
 import team.exit_1.repo.backend.core.service.global.common.response.data.reponse.CommonApiResponse
 
@@ -23,7 +20,8 @@ class GameController(
     private val queryQuizzesService: QueryQuizzesService,
     private val submitQuizAnswerService: SubmitQuizAnswerService,
     private val queryGameProgressService: QueryGameProgressService,
-    private val endGameSessionService: EndGameSessionService
+    private val endGameSessionService: EndGameSessionService,
+    private val queryCompletedGameSessionService: QueryCompletedGameSessionService
 ) {
 
     @PostMapping("/game-sessions")
@@ -162,5 +160,35 @@ class GameController(
         @PathVariable sessionId: String
     ): CommonApiResponse<GameSessionResponse> {
         return CommonApiResponse.success("게임 세션이 성공적으로 종료되었습니다", endGameSessionService.execute(sessionId))
+    }
+
+    @GetMapping("/game-sessions/{sessionId}/completed")
+    @Operation(summary = "완료된 게임 세션 상세 조회", description = "완료된 게임 세션의 모든 정보를 조회합니다. 출제된 문제들, 사용자 답안, 정답률, 통계 등 전체 정보를 포함합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "완료된 게임 세션 정보가 성공적으로 조회되었습니다."
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "아직 완료되지 않은 게임 세션입니다.",
+                content = [Content()]
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "게임 세션을 찾을 수 없습니다.",
+                content = [Content()]
+            )
+        ]
+    )
+    fun getCompletedGameSession(
+        @Parameter(description = "세션 ID", example = "session_550e8400-e29b-41d4-a716-446655440000")
+        @PathVariable sessionId: String
+    ): CommonApiResponse<CompletedGameSessionDetailResponse> {
+        return CommonApiResponse.success(
+            "완료된 게임 세션 정보가 성공적으로 조회되었습니다",
+            queryCompletedGameSessionService.execute(sessionId)
+        )
     }
 }
