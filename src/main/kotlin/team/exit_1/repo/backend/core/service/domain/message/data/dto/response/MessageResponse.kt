@@ -2,23 +2,32 @@ package team.exit_1.repo.backend.core.service.domain.message.data.dto.response
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
-import team.exit_1.repo.backend.core.service.domain.message.data.constant.ConversationParticipantType
 import java.time.LocalDateTime
 
 data class MessageResponse(
-    @field:Schema(description = "메시지 ID", example = "1")
+    @field:Schema(description = "AI 응답 메시지 ID", example = "2")
     @field:JsonProperty("message_id")
     val messageId: Long,
 
-    @field:Schema(description = "메시지 내용", example = "안녕하세요")
+    @field:Schema(description = "AI 응답 내용", example = "안녕하세요! 무엇을 도와드릴까요?")
     @field:JsonProperty("content")
     val content: String,
 
-    @field:Schema(description = "메시지 송신자", example = "USER")
-    @field:JsonProperty("role")
-    val role: ConversationParticipantType,
-
-    @field:Schema(description = "메시지 생성 시간", example = "2024-01-01T00:00:00")
+    @field:Schema(description = "AI 응답 생성 시간", example = "2024-01-01T00:00:01")
     @field:JsonProperty("timestamp")
-    val timestamp: LocalDateTime
+    val timestamp: LocalDateTime,
+
+    @field:Schema(description = "대화 컨텍스트 사용 정보")
+    @field:JsonProperty("context_used")
+    val contextUsed: ContextUsageInfo?
+)
+
+data class ContextUsageInfo(
+    @field:Schema(description = "사용된 이전 대화 수", example = "5")
+    @field:JsonProperty("total_conversations")
+    val totalConversations: Int,
+
+    @field:Schema(description = "가장 높은 유사도 점수", example = "0.95")
+    @field:JsonProperty("top_score")
+    val topScore: Float
 )

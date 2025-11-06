@@ -18,8 +18,9 @@ import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.Chat
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.response.ChatResponse
 import java.time.LocalDateTime
 
-@Component
-class MessageSentEventListener(
+// 동기식 처리로 변경되어 더 이상 사용하지 않음
+// @Component
+open class MessageSentEventListener(
     private val llmServiceClient: LlmServiceClient,
     private val messageJpaRepository: MessageJpaRepository,
     private val conversationJpaRepository: ConversationJpaRepository,
@@ -28,7 +29,7 @@ class MessageSentEventListener(
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun handleMessageSentEvent(event: MessageSentEvent) {
+    open fun handleMessageSentEvent(event: MessageSentEvent) {
         try {
             val chatRequest = ChatRequest(
                 userId = event.userId,

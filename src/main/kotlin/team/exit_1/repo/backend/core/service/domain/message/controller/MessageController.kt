@@ -2,11 +2,13 @@ package team.exit_1.repo.backend.core.service.domain.message.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
 import team.exit_1.repo.backend.core.service.domain.message.data.dto.request.SendMessageRequest
+import team.exit_1.repo.backend.core.service.domain.message.data.dto.response.MessageListResponse
 import team.exit_1.repo.backend.core.service.domain.message.data.dto.response.MessageResponse
 import team.exit_1.repo.backend.core.service.domain.message.service.QueryMessagesService
 import team.exit_1.repo.backend.core.service.domain.message.service.SendMessageService
@@ -21,7 +23,7 @@ class MessageController(
 ) {
 
     @GetMapping
-    @Operation(summary = "메시지 목록 조회", description = "특정 대화의 모든 메시지를 조회합니다.")
+    @Operation(summary = "메시지 목록 조회", description = "특정 대화의 모든 메시지(사용자 메시지 + AI 응답)를 시간순으로 조회합니다.")
     @ApiResponses(
         value = [
             ApiResponse(
@@ -30,28 +32,38 @@ class MessageController(
             ),
             ApiResponse(
                 responseCode = "404",
-                description = "대화를 찾을 수 없습니다."
+                description = "대화를 찾을 수 없습니다.",
+                content = [Content()]
             )
         ]
     )
     fun getMessages(
         @Parameter(description = "대화 ID", example = "conv_550e8400-e29b-41d4-a716-446655440000")
         @PathVariable conversationId: String
-    ): CommonApiResponse<List<MessageResponse>> {
+    ): CommonApiResponse<List<MessageListResponse>> {
         return CommonApiResponse.success("메시지 목록이 성공적으로 조회되었습니다", queryMessagesService.execute(conversationId))
     }
 
     @PostMapping
-    @Operation(summary = "메시지 전송", description = "특정 대화에 새로운 메시지를 전송합니다.")
+    @Operation(
+        summary = "메시지 전송 및 AI 응답 받기",
+        description = "특정 대화에 새로운 메시지를 전송하고 LLM 서버로부터 AI 응답을 받습니다. 사용자 메시지와 AI 응답이 모두 저장되며, AI 응답이 반환됩니다."
+    )
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "201",
-                description = "메시지가 성공적으로 전송되었습니다."
+                description = "메시지가 성공적으로 전송되고 AI 응답이 반환되었습니다."
             ),
             ApiResponse(
                 responseCode = "404",
-                description = "대화를 찾을 수 없습니다."
+                description = "대화를 찾을 수 없습니다.",
+                content = [Content()]
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "LLM 서버 응답 실패 또는 내부 오류가 발생했습니다.",
+                content = [Content()]
             )
         ]
     )
@@ -60,6 +72,6 @@ class MessageController(
         @PathVariable conversationId: String,
         @RequestBody request: SendMessageRequest
     ): CommonApiResponse<MessageResponse> {
-        return CommonApiResponse.created("메시지가 성공적으로 전송되었습니다", sendMessageService.execute(conversationId, request))
+        return CommonApiResponse.created("메시지가 성공적으로 전송되고 AI 응답이 반환되었습니다", sendMessageService.execute(conversationId, request))
     }
 }
