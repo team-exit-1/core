@@ -1,18 +1,11 @@
 FROM gradle:8.14-jdk21-alpine AS build
 WORKDIR /app
 
-COPY gradle.properties ./
-
-COPY build.gradle.kts settings.gradle.kts ./
+COPY gradle.properties build.gradle.kts settings.gradle.kts ./
 COPY buildSrc ./buildSrc
-
-RUN gradle --parallel --build-cache build --no-daemon -x test --dry-run || true
-
 COPY src ./src
 
-RUN gradle --parallel --build-cache build --no-daemon -x test && \
-    find / -type s \( -path "*/.kotlin/*" -o -path "*/.gradle/*" \) -delete 2>/dev/null || true && \
-    rm -rf /root/.kotlin/daemon* /root/.gradle/daemon* /root/.cache /app/.gradle /app/.kotlin /tmp/* 2>/dev/null || true
+RUN gradle --parallel --build-cache build --no-daemon -x test
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
