@@ -41,6 +41,21 @@ llm-service:
 rag-service:
   url: ${RAG_SERVICE_URL:http://localhost:8082}
 
+response:
+  filter:
+    enabled: true
+    patterns:
+      - '^안녕하세요[!.?]*\s*'
+      - '^물론입니다[!.?]*\s*'
+      - '^네[!.?]*\s*'
+      - '^좋습니다[!.?]*\s*'
+      - '^알겠습니다[!.?]*\s*'
+      - '^그렇습니다[!.?]*\s*'
+      - '^물론이죠[!.?]*\s*'
+      - '^네네[!.?]*\s*'
+      - '^좋아요[!.?]*\s*'
+      - '^괜찮습니다[!.?]*\s*'
+
 springdoc:
   api-docs:
     path: /v3/api-docs

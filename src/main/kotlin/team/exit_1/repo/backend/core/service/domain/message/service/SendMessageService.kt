@@ -12,6 +12,7 @@ import team.exit_1.repo.backend.core.service.domain.message.data.dto.response.Me
 import team.exit_1.repo.backend.core.service.domain.message.data.entity.Message
 import team.exit_1.repo.backend.core.service.domain.message.data.repository.MessageJpaRepository
 import team.exit_1.repo.backend.core.service.global.common.error.exception.ExpectedException
+import team.exit_1.repo.backend.core.service.global.common.util.ResponseFilterUtil
 import team.exit_1.repo.backend.core.service.global.config.logger
 import team.exit_1.repo.backend.core.service.global.thirdparty.client.LlmServiceClient
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.ChatRequest
@@ -24,6 +25,7 @@ class SendMessageService(
     private val messageJpaRepository: MessageJpaRepository,
     private val llmServiceClient: LlmServiceClient,
     private val objectMapper: ObjectMapper,
+    private val responseFilterUtil: ResponseFilterUtil,
 ) {
     @Transactional
     fun execute(
@@ -67,10 +69,13 @@ class SendMessageService(
 
         val chatResponse = objectMapper.convertValue(llmResponse.data, ChatResponse::class.java)
 
+        // AI 응답에서 불필요한 인삿말 필터링
+        val filteredResponse = responseFilterUtil.filterResponse(chatResponse.response)
+
         val aiMessage =
             Message().apply {
                 this.conversationId = conversation
-                this.content = chatResponse.response
+                this.content = filteredResponse
                 this.role = ConversationParticipantType.ASSISTANT
                 this.timestamp = LocalDateTime.now()
             }
