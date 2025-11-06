@@ -117,14 +117,15 @@ class SubmitQuizAnswerService(
             logger().error("LLM 서버 평가 중 오류 발생. 현재 난이도 유지", e)
         }
 
-        val completedQuizCount = quizAttemptJpaRepository.countByGameSession(gameSession)
-        val maxQuizCount = MockDataConfig.MAX_QUIZ_COUNT_PER_SESSION
-
-        if (completedQuizCount >= maxQuizCount) {
-            gameSession.status = GameSessionStatus.COMPLETED
-            gameSession.endTime = LocalDateTime.now()
-            logger().info("게임 세션 자동 종료: ${maxQuizCount}개 퀴즈 완료 (sessionId: $sessionId)")
-        }
+        // MAX_QUIZ_COUNT_PER_SESSION 제한 비활성화
+        // val completedQuizCount = quizAttemptJpaRepository.countByGameSession(gameSession)
+        // val maxQuizCount = MockDataConfig.MAX_QUIZ_COUNT_PER_SESSION
+        //
+        // if (completedQuizCount >= maxQuizCount) {
+        //     gameSession.status = GameSessionStatus.COMPLETED
+        //     gameSession.endTime = LocalDateTime.now()
+        //     logger().info("게임 세션 자동 종료: ${maxQuizCount}개 퀴즈 완료 (sessionId: $sessionId)")
+        // }
 
         gameSessionJpaRepository.save(gameSession)
 
@@ -146,19 +147,20 @@ class SubmitQuizAnswerService(
             )
         }
 
-        val completedQuizCount = quizAttemptJpaRepository.countByGameSession(gameSession)
-        val maxQuizCount = MockDataConfig.MAX_QUIZ_COUNT_PER_SESSION
-
-        if (completedQuizCount >= maxQuizCount) {
-            gameSession.status = GameSessionStatus.COMPLETED
-            gameSession.endTime = LocalDateTime.now()
-            gameSessionJpaRepository.save(gameSession)
-
-            throw ExpectedException(
-                message = "게임 세션이 최대 퀴즈 개수(${maxQuizCount}개)에 도달하여 자동 종료되었습니다.",
-                statusCode = HttpStatus.GONE,
-            )
-        }
+        // MAX_QUIZ_COUNT_PER_SESSION 제한 비활성화
+        // val completedQuizCount = quizAttemptJpaRepository.countByGameSession(gameSession)
+        // val maxQuizCount = MockDataConfig.MAX_QUIZ_COUNT_PER_SESSION
+        //
+        // if (completedQuizCount >= maxQuizCount) {
+        //     gameSession.status = GameSessionStatus.COMPLETED
+        //     gameSession.endTime = LocalDateTime.now()
+        //     gameSessionJpaRepository.save(gameSession)
+        //
+        //     throw ExpectedException(
+        //         message = "게임 세션이 최대 퀴즈 개수(${maxQuizCount}개)에 도달하여 자동 종료되었습니다.",
+        //         statusCode = HttpStatus.GONE,
+        //     )
+        // }
 
         val startTime =
             gameSession.startTime
