@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.AnalysisRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.GameQuestionRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.GameResultRequest
+import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.ReportGenerationRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.response.LlmApiResponse
 
 @FeignClient(name = "llm-service", url = "\${llm-service.url}")
@@ -29,8 +30,13 @@ interface LlmServiceClient {
         @RequestBody request: GameResultRequest,
     ): LlmApiResponse
 
-    @PostMapping("/api/analysis")
-    fun generateAnalysis(
+    @PostMapping("/api/analysis/domains")
+    fun generateDomainAnalysis(
         @RequestBody request: AnalysisRequest,
+    ): LlmApiResponse
+
+    @PostMapping("/api/analysis/report")
+    fun generateReport(
+        @RequestBody request: ReportGenerationRequest,
     ): LlmApiResponse
 }
