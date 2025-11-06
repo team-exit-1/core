@@ -14,7 +14,6 @@ import team.exit_1.repo.backend.core.service.domain.game.data.repository.GameSes
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.QuizAttemptJpaRepository
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.QuizJpaRepository
 import team.exit_1.repo.backend.core.service.global.common.error.exception.ExpectedException
-import team.exit_1.repo.backend.core.service.global.config.MockDataConfig
 import team.exit_1.repo.backend.core.service.global.config.logger
 import team.exit_1.repo.backend.core.service.global.thirdparty.client.LlmServiceClient
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.GameResultRequest
@@ -162,24 +161,25 @@ class SubmitQuizAnswerService(
         //     )
         // }
 
-        val startTime =
-            gameSession.startTime
-                ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
-
-        val now = LocalDateTime.now()
-        val timeLimitHours = MockDataConfig.GAME_SESSION_TIME_LIMIT_HOURS
-        val expirationTime = startTime.plusHours(timeLimitHours)
-
-        if (now.isAfter(expirationTime)) {
-            gameSession.status = GameSessionStatus.COMPLETED
-            gameSession.endTime = now
-            gameSessionJpaRepository.save(gameSession)
-
-            throw ExpectedException(
-                message = "게임 세션이 시간 제한(${timeLimitHours}시간)을 초과하여 자동 종료되었습니다.",
-                statusCode = HttpStatus.GONE,
-            )
-        }
+        // GAME_SESSION_TIME_LIMIT_HOURS 제한 비활성화
+        // val startTime =
+        //     gameSession.startTime
+        //         ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
+        //
+        // val now = LocalDateTime.now()
+        // val timeLimitHours = MockDataConfig.GAME_SESSION_TIME_LIMIT_HOURS
+        // val expirationTime = startTime.plusHours(timeLimitHours)
+        //
+        // if (now.isAfter(expirationTime)) {
+        //     gameSession.status = GameSessionStatus.COMPLETED
+        //     gameSession.endTime = now
+        //     gameSessionJpaRepository.save(gameSession)
+        //
+        //     throw ExpectedException(
+        //         message = "게임 세션이 시간 제한(${timeLimitHours}시간)을 초과하여 자동 종료되었습니다.",
+        //         statusCode = HttpStatus.GONE,
+        //     )
+        // }
     }
 
     private fun updateDifficulty(

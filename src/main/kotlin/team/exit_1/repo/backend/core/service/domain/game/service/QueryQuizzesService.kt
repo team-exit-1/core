@@ -13,23 +13,20 @@ import team.exit_1.repo.backend.core.service.domain.game.data.dto.response.QuizR
 import team.exit_1.repo.backend.core.service.domain.game.data.entity.GameSession
 import team.exit_1.repo.backend.core.service.domain.game.data.entity.Quiz
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.GameSessionJpaRepository
-import team.exit_1.repo.backend.core.service.domain.game.data.repository.QuizAttemptJpaRepository
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.QuizJpaRepository
 import team.exit_1.repo.backend.core.service.global.common.error.exception.ExpectedException
-import team.exit_1.repo.backend.core.service.global.config.MockDataConfig
 import team.exit_1.repo.backend.core.service.global.thirdparty.client.LlmServiceClient
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.GameQuestionRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.QuestionTypeRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.QuizDifficultyRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.response.GameQuestionResponse
-import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 
 @Service
 class QueryQuizzesService(
     private val gameSessionJpaRepository: GameSessionJpaRepository,
     private val quizJpaRepository: QuizJpaRepository,
-    private val quizAttemptJpaRepository: QuizAttemptJpaRepository,
+    // private val quizAttemptJpaRepository: QuizAttemptJpaRepository,
     private val llmServiceClient: LlmServiceClient,
     private val objectMapper: ObjectMapper,
 ) {
@@ -54,7 +51,6 @@ class QueryQuizzesService(
             }
         val difficultyHint = QuizDifficultyRequest.from(gameSession.currentDifficulty)
 
-        // 5개의 문제를 비동기로 병렬 요청
         val futures =
             (1..5).map {
                 CompletableFuture.supplyAsync {
@@ -68,18 +64,15 @@ class QueryQuizzesService(
                 }
             }
 
-        // 모든 요청이 완료될 때까지 대기
         val llmResponses =
             CompletableFuture
                 .allOf(*futures.toTypedArray())
                 .thenApply { futures.map { it.join() } }
                 .join()
 
-        // 각 응답을 Quiz로 변환하고 저장
         val quizResponses =
             llmResponses.mapNotNull { llmResponse ->
                 if (!llmResponse.success || llmResponse.data == null) {
-                    // 실패한 요청은 건너뜀
                     null
                 } else {
                     try {
@@ -112,7 +105,6 @@ class QueryQuizzesService(
 
                         val savedQuiz = quizJpaRepository.save(quiz)
 
-                        // QuizResponse 생성
                         val quizOptions =
                             savedQuiz.options?.let { optionsJson ->
                                 val type = object : TypeReference<List<Map<String, String>>>() {}
@@ -136,13 +128,11 @@ class QueryQuizzesService(
                             hint = savedQuiz.hint,
                         )
                     } catch (e: Exception) {
-                        // 개별 퀴즈 처리 중 에러 발생 시 건너뜀
                         null
                     }
                 }
             }
 
-        // 최소 1개 이상의 퀴즈가 성공적으로 생성되었는지 확인
         if (quizResponses.isEmpty()) {
             throw ExpectedException(
                 message = "LLM 서버에서 질문 생성에 실패했습니다.",
@@ -176,23 +166,24 @@ class QueryQuizzesService(
         //     )
         // }
 
-        val startTime =
-            gameSession.startTime
-                ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
-
-        val now = LocalDateTime.now()
-        val timeLimitHours = MockDataConfig.GAME_SESSION_TIME_LIMIT_HOURS
-        val expirationTime = startTime.plusHours(timeLimitHours)
-
-        if (now.isAfter(expirationTime)) {
-            gameSession.status = GameSessionStatus.COMPLETED
-            gameSession.endTime = now
-            gameSessionJpaRepository.save(gameSession)
-
-            throw ExpectedException(
-                message = "게임 세션이 시간 제한(${timeLimitHours}시간)을 초과하여 자동 종료되었습니다.",
-                statusCode = HttpStatus.GONE,
-            )
-        }
+        // GAME_SESSION_TIME_LIMIT_HOURS 제한 비활성화
+        // val startTime =
+        //     gameSession.startTime
+        //         ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
+        //
+        // val now = LocalDateTime.now()
+        // val timeLimitHours = MockDataConfig.GAME_SESSION_TIME_LIMIT_HOURS
+        // val expirationTime = startTime.plusHours(timeLimitHours)
+        //
+        // if (now.isAfter(expirationTime)) {
+        //     gameSession.status = GameSessionStatus.COMPLETED
+        //     gameSession.endTime = now
+        //     gameSessionJpaRepository.save(gameSession)
+        //
+        //     throw ExpectedException(
+        //         message = "게임 세션이 시간 제한(${timeLimitHours}시간)을 초과하여 자동 종료되었습니다.",
+        //         statusCode = HttpStatus.GONE,
+        //     )
+        // }
     }
 }
