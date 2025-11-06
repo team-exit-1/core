@@ -9,7 +9,6 @@ import team.exit_1.repo.backend.core.service.global.common.error.exception.Expec
 import team.exit_1.repo.backend.core.service.global.thirdparty.client.LlmServiceClient
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.AnalysisRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.response.AnalysisResponse
-import team.exit_1.repo.backend.core.service.global.thirdparty.data.response.DomainAnalysis
 
 @Service
 class GenerateAnalysisService(
