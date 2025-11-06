@@ -22,7 +22,8 @@ class GameController(
     private val startGameSessionService: StartGameSessionService,
     private val queryQuizzesService: QueryQuizzesService,
     private val submitQuizAnswerService: SubmitQuizAnswerService,
-    private val queryGameProgressService: QueryGameProgressService
+    private val queryGameProgressService: QueryGameProgressService,
+    private val endGameSessionService: EndGameSessionService
 ) {
 
     @PostMapping("/game-sessions")
@@ -40,7 +41,7 @@ class GameController(
     }
 
     @GetMapping("/game-sessions/{sessionId}/quizzes")
-    @Operation(summary = "퀴즈 목록 조회", description = "게임 세션의 현재 난이도에 맞는 퀴즈 목록을 조회합니다.")
+    @Operation(summary = "퀴즈 목록 조회", description = "게임 세션의 현재 난이도에 맞는 퀴즈를 LLM을 통해 생성하고 조회합니다.")
     @ApiResponses(
         value = [
             ApiResponse(
@@ -49,7 +50,22 @@ class GameController(
             ),
             ApiResponse(
                 responseCode = "404",
-                description = "게임 세션을 찾을 수 없습니다.",
+                description = "게임 세션 또는 사용자 정보를 찾을 수 없습니다.",
+                content = [Content()]
+            ),
+            ApiResponse(
+                responseCode = "409",
+                description = "이미 종료된 게임 세션입니다.",
+                content = [Content()]
+            ),
+            ApiResponse(
+                responseCode = "410",
+                description = "게임 세션이 시간 제한을 초과하여 자동 종료되었습니다.",
+                content = [Content()]
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "LLM 서버에서 질문 생성에 실패했습니다.",
                 content = [Content()]
             )
         ]
@@ -101,6 +117,16 @@ class GameController(
                 responseCode = "404",
                 description = "게임 세션을 찾을 수 없습니다.",
                 content = [Content()]
+            ),
+            ApiResponse(
+                responseCode = "409",
+                description = "이미 종료된 게임 세션입니다.",
+                content = [Content()]
+            ),
+            ApiResponse(
+                responseCode = "410",
+                description = "게임 세션이 시간 제한을 초과하여 자동 종료되었습니다.",
+                content = [Content()]
             )
         ]
     )
@@ -109,5 +135,32 @@ class GameController(
         @PathVariable sessionId: String
     ): CommonApiResponse<GameProgressResponse> {
         return CommonApiResponse.success("진행도가 성공적으로 조회되었습니다", queryGameProgressService.execute(sessionId))
+    }
+
+    @PostMapping("/game-sessions/{sessionId}/end")
+    @Operation(summary = "게임 세션 종료", description = "진행 중인 게임 세션을 종료합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "게임 세션이 성공적으로 종료되었습니다."
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "게임 세션을 찾을 수 없습니다.",
+                content = [Content()]
+            ),
+            ApiResponse(
+                responseCode = "409",
+                description = "이미 종료된 게임 세션입니다.",
+                content = [Content()]
+            )
+        ]
+    )
+    fun endGameSession(
+        @Parameter(description = "세션 ID", example = "session_550e8400-e29b-41d4-a716-446655440000")
+        @PathVariable sessionId: String
+    ): CommonApiResponse<GameSessionResponse> {
+        return CommonApiResponse.success("게임 세션이 성공적으로 종료되었습니다", endGameSessionService.execute(sessionId))
     }
 }

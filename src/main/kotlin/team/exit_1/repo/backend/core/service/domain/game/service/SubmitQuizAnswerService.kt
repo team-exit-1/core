@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import team.exit_1.repo.backend.core.service.domain.game.data.constant.GameSessionStatus
 import team.exit_1.repo.backend.core.service.domain.game.data.constant.QuizDifficulty
 import team.exit_1.repo.backend.core.service.domain.game.data.dto.request.SubmitQuizAnswerRequest
 import team.exit_1.repo.backend.core.service.domain.game.data.dto.response.QuizAttemptResponse
@@ -13,6 +14,7 @@ import team.exit_1.repo.backend.core.service.domain.game.data.repository.GameSes
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.QuizAttemptJpaRepository
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.QuizJpaRepository
 import team.exit_1.repo.backend.core.service.global.common.error.exception.ExpectedException
+import team.exit_1.repo.backend.core.service.global.config.MockDataConfig
 import team.exit_1.repo.backend.core.service.global.config.logger
 import team.exit_1.repo.backend.core.service.global.thirdparty.client.LlmServiceClient
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.GameResultRequest
@@ -31,6 +33,9 @@ class SubmitQuizAnswerService(
     fun execute(sessionId: String, request: SubmitQuizAnswerRequest): QuizAttemptResponse {
         val gameSession = gameSessionJpaRepository.findById(sessionId)
             .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
+
+        // 세션 유효성 검증
+        validateGameSession(gameSession)
 
         val quiz = quizJpaRepository.findById(request.quizId)
             .orElseThrow { ExpectedException(message = "퀴즈가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
@@ -119,6 +124,36 @@ class SubmitQuizAnswerService(
             score = savedAttempt.score,
             attemptTime = savedAttempt.attemptTime!!
         )
+    }
+
+    private fun validateGameSession(gameSession: GameSession) {
+        // 이미 종료된 세션인지 확인
+        if (gameSession.status == GameSessionStatus.COMPLETED) {
+            throw ExpectedException(
+                message = "이미 종료된 게임 세션입니다.",
+                statusCode = HttpStatus.CONFLICT
+            )
+        }
+
+        // 시간 제한 확인
+        val startTime = gameSession.startTime
+            ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
+
+        val now = LocalDateTime.now()
+        val timeLimitHours = MockDataConfig.GAME_SESSION_TIME_LIMIT_HOURS
+        val expirationTime = startTime.plusHours(timeLimitHours)
+
+        if (now.isAfter(expirationTime)) {
+            // 자동으로 세션 종료
+            gameSession.status = GameSessionStatus.COMPLETED
+            gameSession.endTime = now
+            gameSessionJpaRepository.save(gameSession)
+
+            throw ExpectedException(
+                message = "게임 세션이 시간 제한(${timeLimitHours}시간)을 초과하여 자동 종료되었습니다.",
+                statusCode = HttpStatus.GONE
+            )
+        }
     }
 
     private fun updateDifficulty(gameSession: GameSession, suggestedDifficulty: String) {

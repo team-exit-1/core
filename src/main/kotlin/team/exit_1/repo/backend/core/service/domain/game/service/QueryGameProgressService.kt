@@ -3,10 +3,14 @@ package team.exit_1.repo.backend.core.service.domain.game.service
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import team.exit_1.repo.backend.core.service.domain.game.data.constant.GameSessionStatus
 import team.exit_1.repo.backend.core.service.domain.game.data.dto.response.GameProgressResponse
+import team.exit_1.repo.backend.core.service.domain.game.data.entity.GameSession
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.GameSessionJpaRepository
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.QuizAttemptJpaRepository
 import team.exit_1.repo.backend.core.service.global.common.error.exception.ExpectedException
+import team.exit_1.repo.backend.core.service.global.config.MockDataConfig
+import java.time.LocalDateTime
 
 @Service
 class QueryGameProgressService(
@@ -17,6 +21,9 @@ class QueryGameProgressService(
     fun execute(sessionId: String): GameProgressResponse {
         val gameSession = gameSessionJpaRepository.findById(sessionId)
             .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
+
+        // 세션 유효성 검증
+        validateGameSession(gameSession)
 
         val attempts = quizAttemptJpaRepository.findAllByGameSession(gameSession)
         val totalAttempts = attempts.size.toLong()
@@ -34,5 +41,35 @@ class QueryGameProgressService(
             correctAnswers = correctAnswers,
             accuracyRate = accuracyRate
         )
+    }
+
+    private fun validateGameSession(gameSession: GameSession) {
+        // 이미 종료된 세션인지 확인
+        if (gameSession.status == GameSessionStatus.COMPLETED) {
+            throw ExpectedException(
+                message = "이미 종료된 게임 세션입니다.",
+                statusCode = HttpStatus.CONFLICT
+            )
+        }
+
+        // 시간 제한 확인
+        val startTime = gameSession.startTime
+            ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
+
+        val now = LocalDateTime.now()
+        val timeLimitHours = MockDataConfig.GAME_SESSION_TIME_LIMIT_HOURS
+        val expirationTime = startTime.plusHours(timeLimitHours)
+
+        if (now.isAfter(expirationTime)) {
+            // 자동으로 세션 종료
+            gameSession.status = GameSessionStatus.COMPLETED
+            gameSession.endTime = now
+            gameSessionJpaRepository.save(gameSession)
+
+            throw ExpectedException(
+                message = "게임 세션이 시간 제한(${timeLimitHours}시간)을 초과하여 자동 종료되었습니다.",
+                statusCode = HttpStatus.GONE
+            )
+        }
     }
 }

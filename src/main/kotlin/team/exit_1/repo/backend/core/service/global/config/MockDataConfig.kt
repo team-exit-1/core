@@ -5,5 +5,6 @@ class MockDataConfig {
     companion object{
         const val MOCK_USER_ID = "user_2419"
         const val MOCK_CONVERSATION_ID = "conv_001"
+        const val GAME_SESSION_TIME_LIMIT_HOURS = 24L // 게임 세션 시간 제한 (시간)
     }
 }

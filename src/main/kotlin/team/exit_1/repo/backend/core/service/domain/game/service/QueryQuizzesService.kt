@@ -5,20 +5,23 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import team.exit_1.repo.backend.core.service.domain.game.data.constant.QuestionType
+import team.exit_1.repo.backend.core.service.domain.game.data.constant.GameSessionStatus
 import team.exit_1.repo.backend.core.service.domain.game.data.constant.QuizDifficulty
 import team.exit_1.repo.backend.core.service.domain.game.data.dto.response.QuestionTypeDto
 import team.exit_1.repo.backend.core.service.domain.game.data.dto.response.QuizOption
 import team.exit_1.repo.backend.core.service.domain.game.data.dto.response.QuizResponse
+import team.exit_1.repo.backend.core.service.domain.game.data.entity.GameSession
 import team.exit_1.repo.backend.core.service.domain.game.data.entity.Quiz
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.GameSessionJpaRepository
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.QuizJpaRepository
 import team.exit_1.repo.backend.core.service.global.common.error.exception.ExpectedException
+import team.exit_1.repo.backend.core.service.global.config.MockDataConfig
 import team.exit_1.repo.backend.core.service.global.thirdparty.client.LlmServiceClient
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.GameQuestionRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.QuestionTypeRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.QuizDifficultyRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.response.GameQuestionResponse
+import java.time.LocalDateTime
 
 @Service
 class QueryQuizzesService(
@@ -31,6 +34,9 @@ class QueryQuizzesService(
     fun execute(sessionId: String): List<QuizResponse> {
         val gameSession = gameSessionJpaRepository.findById(sessionId)
             .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
+
+        // 세션 유효성 검증
+        validateGameSession(gameSession)
 
         val userId = gameSession.userId
             ?: throw ExpectedException(message = "사용자 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
@@ -112,5 +118,35 @@ class QueryQuizzesService(
                 hint = savedQuiz.hint
             )
         )
+    }
+
+    private fun validateGameSession(gameSession: GameSession) {
+        // 이미 종료된 세션인지 확인
+        if (gameSession.status == GameSessionStatus.COMPLETED) {
+            throw ExpectedException(
+                message = "이미 종료된 게임 세션입니다.",
+                statusCode = HttpStatus.CONFLICT
+            )
+        }
+
+        // 시간 제한 확인
+        val startTime = gameSession.startTime
+            ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
+
+        val now = LocalDateTime.now()
+        val timeLimitHours = MockDataConfig.GAME_SESSION_TIME_LIMIT_HOURS
+        val expirationTime = startTime.plusHours(timeLimitHours)
+
+        if (now.isAfter(expirationTime)) {
+            // 자동으로 세션 종료
+            gameSession.status = GameSessionStatus.COMPLETED
+            gameSession.endTime = now
+            gameSessionJpaRepository.save(gameSession)
+
+            throw ExpectedException(
+                message = "게임 세션이 시간 제한(${timeLimitHours}시간)을 초과하여 자동 종료되었습니다.",
+                statusCode = HttpStatus.GONE
+            )
+        }
     }
 }
