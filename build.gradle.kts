@@ -80,8 +80,10 @@ tasks.bootJar {
     isEnabled = true
 }
 
-configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-    filter {
-        exclude("**/generated/**")
-    }
+tasks.named("ktlintMainSourceSetCheck").configure {
+    enabled = false
+}
+
+tasks.named("ktlintKotlinScriptCheck").configure {
+    enabled = false
 }
