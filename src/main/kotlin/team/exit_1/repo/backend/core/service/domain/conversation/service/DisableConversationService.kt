@@ -35,7 +35,8 @@ class DisableConversationService(
             conversationId = updatedConversation.id!!,
             userId = updatedConversation.userId!!,
             conversationStatus = updatedConversation.status,
-            timestamp = updatedConversation.timestamp!!
+            timestamp = updatedConversation.timestamp!!,
+            initialGreeting = null
         )
     }
 }

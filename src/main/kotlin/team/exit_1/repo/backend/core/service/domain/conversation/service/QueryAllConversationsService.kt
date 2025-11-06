@@ -17,7 +17,8 @@ class QueryAllConversationsService(
                     conversationId = conversation.id!!,
                     userId = conversation.userId!!,
                     timestamp = conversation.timestamp!!,
-                    conversationStatus = conversation.status
+                    conversationStatus = conversation.status,
+                    initialGreeting = null
                 )
             }
     }
