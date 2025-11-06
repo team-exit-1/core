@@ -13,6 +13,7 @@ import team.exit_1.repo.backend.core.service.domain.game.data.dto.response.QuizR
 import team.exit_1.repo.backend.core.service.domain.game.data.entity.GameSession
 import team.exit_1.repo.backend.core.service.domain.game.data.entity.Quiz
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.GameSessionJpaRepository
+import team.exit_1.repo.backend.core.service.domain.game.data.repository.QuizAttemptJpaRepository
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.QuizJpaRepository
 import team.exit_1.repo.backend.core.service.global.common.error.exception.ExpectedException
 import team.exit_1.repo.backend.core.service.global.config.MockDataConfig
@@ -27,6 +28,7 @@ import java.time.LocalDateTime
 class QueryQuizzesService(
     private val gameSessionJpaRepository: GameSessionJpaRepository,
     private val quizJpaRepository: QuizJpaRepository,
+    private val quizAttemptJpaRepository: QuizAttemptJpaRepository,
     private val llmServiceClient: LlmServiceClient,
     private val objectMapper: ObjectMapper
 ) {
@@ -126,6 +128,22 @@ class QueryQuizzesService(
             throw ExpectedException(
                 message = "이미 종료된 게임 세션입니다.",
                 statusCode = HttpStatus.CONFLICT
+            )
+        }
+
+        // 최대 퀴즈 개수 확인
+        val completedQuizCount = quizAttemptJpaRepository.countByGameSession(gameSession)
+        val maxQuizCount = MockDataConfig.MAX_QUIZ_COUNT_PER_SESSION
+
+        if (completedQuizCount >= maxQuizCount) {
+            // 자동으로 세션 종료
+            gameSession.status = GameSessionStatus.COMPLETED
+            gameSession.endTime = LocalDateTime.now()
+            gameSessionJpaRepository.save(gameSession)
+
+            throw ExpectedException(
+                message = "게임 세션이 최대 퀴즈 개수(${maxQuizCount}개)에 도달하여 자동 종료되었습니다.",
+                statusCode = HttpStatus.GONE
             )
         }
 

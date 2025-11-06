@@ -114,6 +114,16 @@ class SubmitQuizAnswerService(
             logger().error("LLM 서버 평가 중 오류 발생. 현재 난이도 유지", e)
         }
 
+        // 퀴즈 완료 개수 확인 후 최대 개수 도달 시 세션 종료
+        val completedQuizCount = quizAttemptJpaRepository.countByGameSession(gameSession)
+        val maxQuizCount = MockDataConfig.MAX_QUIZ_COUNT_PER_SESSION
+
+        if (completedQuizCount >= maxQuizCount) {
+            gameSession.status = GameSessionStatus.COMPLETED
+            gameSession.endTime = LocalDateTime.now()
+            logger().info("게임 세션 자동 종료: ${maxQuizCount}개 퀴즈 완료 (sessionId: $sessionId)")
+        }
+
         gameSessionJpaRepository.save(gameSession)
 
         return QuizAttemptResponse(
@@ -132,6 +142,22 @@ class SubmitQuizAnswerService(
             throw ExpectedException(
                 message = "이미 종료된 게임 세션입니다.",
                 statusCode = HttpStatus.CONFLICT
+            )
+        }
+
+        // 최대 퀴즈 개수 확인 (제출 전에 체크)
+        val completedQuizCount = quizAttemptJpaRepository.countByGameSession(gameSession)
+        val maxQuizCount = MockDataConfig.MAX_QUIZ_COUNT_PER_SESSION
+
+        if (completedQuizCount >= maxQuizCount) {
+            // 자동으로 세션 종료
+            gameSession.status = GameSessionStatus.COMPLETED
+            gameSession.endTime = LocalDateTime.now()
+            gameSessionJpaRepository.save(gameSession)
+
+            throw ExpectedException(
+                message = "게임 세션이 최대 퀴즈 개수(${maxQuizCount}개)에 도달하여 자동 종료되었습니다.",
+                statusCode = HttpStatus.GONE
             )
         }
 

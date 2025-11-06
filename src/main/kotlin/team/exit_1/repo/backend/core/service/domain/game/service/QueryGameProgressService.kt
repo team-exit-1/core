@@ -52,6 +52,22 @@ class QueryGameProgressService(
             )
         }
 
+        // 최대 퀴즈 개수 확인
+        val completedQuizCount = quizAttemptJpaRepository.countByGameSession(gameSession)
+        val maxQuizCount = MockDataConfig.MAX_QUIZ_COUNT_PER_SESSION
+
+        if (completedQuizCount >= maxQuizCount) {
+            // 자동으로 세션 종료
+            gameSession.status = GameSessionStatus.COMPLETED
+            gameSession.endTime = LocalDateTime.now()
+            gameSessionJpaRepository.save(gameSession)
+
+            throw ExpectedException(
+                message = "게임 세션이 최대 퀴즈 개수(${maxQuizCount}개)에 도달하여 자동 종료되었습니다.",
+                statusCode = HttpStatus.GONE
+            )
+        }
+
         // 시간 제한 확인
         val startTime = gameSession.startTime
             ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
