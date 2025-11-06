@@ -1,5 +1,6 @@
 package team.exit_1.repo.backend.core.service.global.thirdparty.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import feign.Contract
 import feign.codec.Decoder
 import feign.codec.Encoder
@@ -13,15 +14,17 @@ import team.exit_1.repo.backend.core.service.global.thirdparty.error.FeignErrorD
 
 @Configuration
 @EnableFeignClients(basePackages = ["team.exit_1"])
-class FeignConfig {
+class FeignConfig(
+    private val objectMapper: ObjectMapper
+) {
     @Bean
     fun feignErrorDecoder(): FeignErrorDecoder = FeignErrorDecoder()
 
     @Bean
-    fun encoder(): Encoder = JacksonEncoder()
+    fun encoder(): Encoder = JacksonEncoder(objectMapper)
 
     @Bean
-    fun decoder(): Decoder = JacksonDecoder()
+    fun decoder(): Decoder = JacksonDecoder(objectMapper)
 
     @Bean
     fun contract(): Contract = SpringMvcContract()

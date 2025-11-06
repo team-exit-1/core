@@ -14,11 +14,8 @@ interface LlmServiceClient {
     @GetMapping("/health")
     fun healthCheck(): Map<String, Any>
 
-    @PostMapping("/chat")
-    fun chat(@RequestBody request: Map<String, Any>): Map<String, Any>
-
-    @PostMapping("/generate")
-    fun generate(@RequestBody request: Map<String, Any>): Map<String, Any>
+    @PostMapping("/api/chat")
+    fun sendChatMessage(@RequestBody request: team.exit_1.repo.backend.core.service.global.thirdparty.data.request.ChatRequest): LlmApiResponse
 
     @PostMapping("/api/game/question")
     fun generateGameQuestion(@RequestBody request: GameQuestionRequest): LlmApiResponse

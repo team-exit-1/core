@@ -137,7 +137,6 @@ class SubmitQuizAnswerService(
     }
 
     private fun validateGameSession(gameSession: GameSession) {
-        // 이미 종료된 세션인지 확인
         if (gameSession.status == GameSessionStatus.COMPLETED) {
             throw ExpectedException(
                 message = "이미 종료된 게임 세션입니다.",
@@ -145,12 +144,10 @@ class SubmitQuizAnswerService(
             )
         }
 
-        // 최대 퀴즈 개수 확인 (제출 전에 체크)
         val completedQuizCount = quizAttemptJpaRepository.countByGameSession(gameSession)
         val maxQuizCount = MockDataConfig.MAX_QUIZ_COUNT_PER_SESSION
 
         if (completedQuizCount >= maxQuizCount) {
-            // 자동으로 세션 종료
             gameSession.status = GameSessionStatus.COMPLETED
             gameSession.endTime = LocalDateTime.now()
             gameSessionJpaRepository.save(gameSession)
@@ -161,7 +158,6 @@ class SubmitQuizAnswerService(
             )
         }
 
-        // 시간 제한 확인
         val startTime = gameSession.startTime
             ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
 
@@ -170,7 +166,6 @@ class SubmitQuizAnswerService(
         val expirationTime = startTime.plusHours(timeLimitHours)
 
         if (now.isAfter(expirationTime)) {
-            // 자동으로 세션 종료
             gameSession.status = GameSessionStatus.COMPLETED
             gameSession.endTime = now
             gameSessionJpaRepository.save(gameSession)

@@ -18,7 +18,6 @@ class EndGameSessionService(
         val gameSession = gameSessionJpaRepository.findById(sessionId)
             .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
 
-        // 이미 종료된 세션인지 확인
         if (gameSession.status == GameSessionStatus.COMPLETED) {
             throw ExpectedException(
                 message = "이미 종료된 게임 세션입니다.",
@@ -26,7 +25,6 @@ class EndGameSessionService(
             )
         }
 
-        // 세션 종료 처리
         gameSession.status = GameSessionStatus.COMPLETED
         gameSession.endTime = LocalDateTime.now()
 

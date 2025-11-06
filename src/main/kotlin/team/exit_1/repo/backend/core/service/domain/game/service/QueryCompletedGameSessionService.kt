@@ -24,7 +24,6 @@ class QueryCompletedGameSessionService(
         val gameSession = gameSessionJpaRepository.findById(sessionId)
             .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
 
-        // 완료된 세션인지 확인
         if (gameSession.status != GameSessionStatus.COMPLETED) {
             throw ExpectedException(
                 message = "아직 완료되지 않은 게임 세션입니다. 진행 중인 세션은 /progress 엔드포인트를 사용해주세요.",
@@ -35,11 +34,9 @@ class QueryCompletedGameSessionService(
         val userId = gameSession.userId
             ?: throw ExpectedException(message = "사용자 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
 
-        // 모든 시도 기록 조회
         val attempts = quizAttemptJpaRepository.findAllByGameSession(gameSession)
             .sortedBy { it.attemptTime }
 
-        // 통계 계산
         val totalQuizzes = attempts.size
         val correctAnswers = attempts.count { it.isCorrect }
         val wrongAnswers = totalQuizzes - correctAnswers
@@ -49,14 +46,12 @@ class QueryCompletedGameSessionService(
             0.0
         }
 
-        // 플레이 시간 계산
         val playTimeMinutes = if (gameSession.startTime != null && gameSession.endTime != null) {
             Duration.between(gameSession.startTime, gameSession.endTime).toMinutes()
         } else {
             0L
         }
 
-        // 난이도별 통계 계산
         val accuracyByDifficulty = calculateAccuracyByDifficulty(attempts)
 
         val statistics = GameStatistics(
@@ -69,7 +64,6 @@ class QueryCompletedGameSessionService(
             accuracyByDifficulty = accuracyByDifficulty
         )
 
-        // 퀴즈 시도 상세 정보 생성
         val quizAttemptDetails = attempts.mapIndexed { index, attempt ->
             val quiz = attempt.quiz
                 ?: throw ExpectedException(message = "퀴즈 정보가 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)

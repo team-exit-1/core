@@ -37,13 +37,11 @@ class QueryQuizzesService(
         val gameSession = gameSessionJpaRepository.findById(sessionId)
             .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
 
-        // 세션 유효성 검증
         validateGameSession(gameSession)
 
         val userId = gameSession.userId
             ?: throw ExpectedException(message = "사용자 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
 
-        // LLM 서버에서 질문 생성 (난이도에 따라 ox 또는 multiple_choice)
         val questionType = if (gameSession.currentDifficulty == QuizDifficulty.EASY) {
             QuestionTypeRequest.OX
         } else {
@@ -66,10 +64,8 @@ class QueryQuizzesService(
             )
         }
 
-        // LLM 응답을 GameQuestionResponse로 변환
         val questionResponse = objectMapper.convertValue(llmResponse.data, GameQuestionResponse::class.java)
 
-        // Quiz 엔티티로 변환하여 저장
         val parsedQuestionType = questionResponse.parseQuestionType()
             ?: throw ExpectedException(
                 message = "LLM 서버에서 알 수 없는 질문 타입을 반환했습니다: ${questionResponse.questionType}",
@@ -88,7 +84,6 @@ class QueryQuizzesService(
             this.daysSinceConversation = questionResponse.metadata.daysSinceConversation
             this.category = questionResponse.metadata.topic
 
-            // options가 있으면 JSON으로 저장
             if (questionResponse.options != null) {
                 this.options = objectMapper.writeValueAsString(questionResponse.options)
             }
@@ -123,7 +118,6 @@ class QueryQuizzesService(
     }
 
     private fun validateGameSession(gameSession: GameSession) {
-        // 이미 종료된 세션인지 확인
         if (gameSession.status == GameSessionStatus.COMPLETED) {
             throw ExpectedException(
                 message = "이미 종료된 게임 세션입니다.",
@@ -131,12 +125,10 @@ class QueryQuizzesService(
             )
         }
 
-        // 최대 퀴즈 개수 확인
         val completedQuizCount = quizAttemptJpaRepository.countByGameSession(gameSession)
         val maxQuizCount = MockDataConfig.MAX_QUIZ_COUNT_PER_SESSION
 
         if (completedQuizCount >= maxQuizCount) {
-            // 자동으로 세션 종료
             gameSession.status = GameSessionStatus.COMPLETED
             gameSession.endTime = LocalDateTime.now()
             gameSessionJpaRepository.save(gameSession)
@@ -147,7 +139,6 @@ class QueryQuizzesService(
             )
         }
 
-        // 시간 제한 확인
         val startTime = gameSession.startTime
             ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
 
@@ -156,7 +147,6 @@ class QueryQuizzesService(
         val expirationTime = startTime.plusHours(timeLimitHours)
 
         if (now.isAfter(expirationTime)) {
-            // 자동으로 세션 종료
             gameSession.status = GameSessionStatus.COMPLETED
             gameSession.endTime = now
             gameSessionJpaRepository.save(gameSession)
