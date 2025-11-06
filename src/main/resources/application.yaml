@@ -28,7 +28,7 @@ spring:
         - 'https://repo-hackerton.dsmhs.kr'
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 llm-service:
   url: ${LLM_SERVICE_URL:http://localhost:3000}
