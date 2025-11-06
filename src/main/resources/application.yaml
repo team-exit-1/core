@@ -24,9 +24,10 @@ spring:
         - 'http://localhost:3001'
         - 'http://localhost:8080'
         - 'http://localhost:8081'
-        - 'https://repo-core-hackerton.dsmhs.kr'
-        - 'https://repo-hackerton.dsmhs.kr'
-
+        - 'https://refo-core-hackerton.dsmhs.kr'
+        - 'https://refo-hackerton.dsmhs.kr'
+        - 'https://refo-rag-hackerton.dsmhs.kr'
+        - 'https://refo-llm-hackerton.dsmhs.kr'
 server:
   port: ${SERVER_PORT:8080}
 
