@@ -5,5 +5,5 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class ResponseMetadata(
     val timestamp: String,
     @field:JsonProperty("request_id")
-    val requestId: String
+    val requestId: String,
 )

@@ -6,6 +6,6 @@ import team.exit_1.repo.backend.core.service.domain.conversation.data.constant.C
 import team.exit_1.repo.backend.core.service.domain.conversation.data.entity.Conversation
 
 @Repository
-interface ConversationJpaRepository: JpaRepository<Conversation, String> {
+interface ConversationJpaRepository : JpaRepository<Conversation, String> {
     fun findAllByStatus(status: ConversationStatus): List<Conversation>
 }

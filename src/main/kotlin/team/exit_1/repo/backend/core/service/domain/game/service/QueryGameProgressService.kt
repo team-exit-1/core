@@ -15,30 +15,33 @@ import java.time.LocalDateTime
 @Service
 class QueryGameProgressService(
     private val gameSessionJpaRepository: GameSessionJpaRepository,
-    private val quizAttemptJpaRepository: QuizAttemptJpaRepository
+    private val quizAttemptJpaRepository: QuizAttemptJpaRepository,
 ) {
     @Transactional(readOnly = true)
     fun execute(sessionId: String): GameProgressResponse {
-        val gameSession = gameSessionJpaRepository.findById(sessionId)
-            .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
+        val gameSession =
+            gameSessionJpaRepository
+                .findById(sessionId)
+                .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
 
         validateGameSession(gameSession)
 
         val attempts = quizAttemptJpaRepository.findAllByGameSession(gameSession)
         val totalAttempts = attempts.size.toLong()
         val correctAnswers = attempts.count { it.isCorrect }.toLong()
-        val accuracyRate = if (totalAttempts > 0) {
-            (correctAnswers.toDouble() / totalAttempts.toDouble()) * 100
-        } else {
-            0.0
-        }
+        val accuracyRate =
+            if (totalAttempts > 0) {
+                (correctAnswers.toDouble() / totalAttempts.toDouble()) * 100
+            } else {
+                0.0
+            }
 
         return GameProgressResponse(
             sessionId = gameSession.id!!,
             totalScore = gameSession.totalScore,
             totalAttempts = totalAttempts,
             correctAnswers = correctAnswers,
-            accuracyRate = accuracyRate
+            accuracyRate = accuracyRate,
         )
     }
 
@@ -46,7 +49,7 @@ class QueryGameProgressService(
         if (gameSession.status == GameSessionStatus.COMPLETED) {
             throw ExpectedException(
                 message = "이미 종료된 게임 세션입니다.",
-                statusCode = HttpStatus.CONFLICT
+                statusCode = HttpStatus.CONFLICT,
             )
         }
 
@@ -60,12 +63,13 @@ class QueryGameProgressService(
 
             throw ExpectedException(
                 message = "게임 세션이 최대 퀴즈 개수(${maxQuizCount}개)에 도달하여 자동 종료되었습니다.",
-                statusCode = HttpStatus.GONE
+                statusCode = HttpStatus.GONE,
             )
         }
 
-        val startTime = gameSession.startTime
-            ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
+        val startTime =
+            gameSession.startTime
+                ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
 
         val now = LocalDateTime.now()
         val timeLimitHours = MockDataConfig.GAME_SESSION_TIME_LIMIT_HOURS
@@ -78,7 +82,7 @@ class QueryGameProgressService(
 
             throw ExpectedException(
                 message = "게임 세션이 시간 제한(${timeLimitHours}시간)을 초과하여 자동 종료되었습니다.",
-                statusCode = HttpStatus.GONE
+                statusCode = HttpStatus.GONE,
             )
         }
     }

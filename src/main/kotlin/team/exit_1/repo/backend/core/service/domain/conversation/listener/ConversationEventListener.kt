@@ -1,6 +1,5 @@
 package team.exit_1.repo.backend.core.service.domain.conversation.listener
 
-import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionPhase
@@ -15,7 +14,7 @@ import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.Stor
 @Component
 class ConversationEventListener(
     private val messageJpaRepository: MessageJpaRepository,
-    private val ragServiceClient: RagServiceClient
+    private val ragServiceClient: RagServiceClient,
 ) {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -30,21 +29,24 @@ class ConversationEventListener(
                 return
             }
 
-            val messageDtos = messages.map { message ->
-                MessageDto(
-                    role = message.role?.lowercase ?: "user",
-                    content = message.content
-                )
-            }
+            val messageDtos =
+                messages.map { message ->
+                    MessageDto(
+                        role = message.role?.lowercase ?: "user",
+                        content = message.content,
+                    )
+                }
 
-            val storeRequest = StoreConversationRequest(
-                conversationId = conversationId,
-                messages = messageDtos,
-                metadata = mapOf(
-                    "source" to "core_service",
-                    "user_id" to conversation.userId!!
+            val storeRequest =
+                StoreConversationRequest(
+                    conversationId = conversationId,
+                    messages = messageDtos,
+                    metadata =
+                        mapOf(
+                            "source" to "core_service",
+                            "user_id" to conversation.userId!!,
+                        ),
                 )
-            )
 
             val response = ragServiceClient.storeConversation(storeRequest)
             if (response.success) {

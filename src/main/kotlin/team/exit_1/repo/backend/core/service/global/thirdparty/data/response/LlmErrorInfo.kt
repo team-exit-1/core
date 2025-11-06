@@ -6,5 +6,5 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 data class LlmErrorInfo(
     val code: String = "",
     val message: String = "",
-    val details: Map<String, Any>? = null
+    val details: Map<String, Any>? = null,
 )

@@ -7,8 +7,7 @@ data class RoutineListResponse(
     @field:Schema(description = "루틴 목록")
     @field:JsonProperty("items")
     val items: List<RoutineResponse>,
-
     @field:Schema(description = "총 개수", example = "5")
     @field:JsonProperty("total")
-    val total: Int
+    val total: Int,
 )

@@ -7,5 +7,5 @@ data class QuestionMetadata(
     @field:JsonProperty("memory_score")
     val memoryScore: Float,
     @field:JsonProperty("days_since_conversation")
-    val daysSinceConversation: Int
+    val daysSinceConversation: Int,
 )

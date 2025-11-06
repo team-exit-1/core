@@ -7,12 +7,10 @@ data class PersonalInfoListResponse(
     @field:Schema(description = "개인정보 목록")
     @field:JsonProperty("items")
     val items: List<PersonalInfoResponse>,
-
     @field:Schema(description = "총 개수", example = "5")
     @field:JsonProperty("total")
     val total: Int,
-
     @field:Schema(description = "사용자 ID", example = "user_2419")
     @field:JsonProperty("user_id")
-    val userId: String
+    val userId: String,
 )

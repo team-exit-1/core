@@ -7,5 +7,5 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class LlmMetadata(
     val timestamp: String = "",
     @field:JsonProperty("request_id")
-    val requestId: String = ""
+    val requestId: String = "",
 )

@@ -12,5 +12,5 @@ data class StoreConversationData(
     @field:JsonProperty("stored_at")
     val storedAt: String,
     @field:JsonProperty("processing_time_ms")
-    val processingTimeMs: Int
+    val processingTimeMs: Int,
 )

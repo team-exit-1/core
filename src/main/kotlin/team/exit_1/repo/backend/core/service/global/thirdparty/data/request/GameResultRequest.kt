@@ -14,5 +14,5 @@ data class GameResultRequest(
     @field:JsonProperty("response_time_ms")
     val responseTimeMs: Long? = null,
     @field:JsonProperty("game_session_id")
-    val gameSessionId: String? = null
+    val gameSessionId: String? = null,
 )

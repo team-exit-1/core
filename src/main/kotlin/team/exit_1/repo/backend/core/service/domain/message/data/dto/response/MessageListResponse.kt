@@ -9,17 +9,13 @@ data class MessageListResponse(
     @field:Schema(description = "메시지 ID", example = "1")
     @field:JsonProperty("message_id")
     val messageId: Long,
-
     @field:Schema(description = "메시지 내용", example = "안녕하세요")
     @field:JsonProperty("content")
     val content: String,
-
     @field:Schema(description = "메시지 송신자 (USER 또는 ASSISTANT)", example = "USER")
     @field:JsonProperty("role")
     val role: ConversationParticipantType,
-
     @field:Schema(description = "메시지 생성 시간", example = "2024-01-01T00:00:00")
     @field:JsonProperty("timestamp")
-    val timestamp: LocalDateTime
+    val timestamp: LocalDateTime,
 )
-

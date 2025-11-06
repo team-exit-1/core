@@ -4,5 +4,5 @@ data class StoreConversationResponse(
     val success: Boolean,
     val data: StoreConversationData?,
     val error: StoreConversationError?,
-    val metadata: ResponseMetadata?
+    val metadata: ResponseMetadata?,
 )

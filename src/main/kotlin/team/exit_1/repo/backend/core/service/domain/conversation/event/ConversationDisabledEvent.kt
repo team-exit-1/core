@@ -6,5 +6,5 @@ import team.exit_1.repo.backend.core.service.domain.conversation.data.entity.Con
 class ConversationDisabledEvent(
     source: Any,
     val conversation: Conversation,
-    val conversationId: String
+    val conversationId: String,
 ) : ApplicationEvent(source)

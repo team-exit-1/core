@@ -10,16 +10,21 @@ import team.exit_1.repo.backend.core.service.global.thirdparty.data.response.Llm
 
 @FeignClient(name = "llm-service", url = "\${llm-service.url}")
 interface LlmServiceClient {
-
     @GetMapping("/health")
     fun healthCheck(): Map<String, Any>
 
     @PostMapping("/api/chat")
-    fun sendChatMessage(@RequestBody request: team.exit_1.repo.backend.core.service.global.thirdparty.data.request.ChatRequest): LlmApiResponse
+    fun sendChatMessage(
+        @RequestBody request: team.exit_1.repo.backend.core.service.global.thirdparty.data.request.ChatRequest,
+    ): LlmApiResponse
 
     @PostMapping("/api/game/question")
-    fun generateGameQuestion(@RequestBody request: GameQuestionRequest): LlmApiResponse
+    fun generateGameQuestion(
+        @RequestBody request: GameQuestionRequest,
+    ): LlmApiResponse
 
     @PostMapping("/api/game/result")
-    fun evaluateGameResult(@RequestBody request: GameResultRequest): LlmApiResponse
+    fun evaluateGameResult(
+        @RequestBody request: GameResultRequest,
+    ): LlmApiResponse
 }

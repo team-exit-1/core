@@ -7,5 +7,5 @@ data class MemoryEvaluation(
     @field:JsonProperty("retention_score")
     val retentionScore: Float,
     val confidence: String, // "high", "medium", "low"
-    val recommendation: String
+    val recommendation: String,
 )

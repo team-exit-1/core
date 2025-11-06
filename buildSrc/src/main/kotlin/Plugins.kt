@@ -4,4 +4,5 @@ object Plugins {
     const val KOTLIN_JPA = "org.jetbrains.kotlin.plugin.jpa"
     const val SPRING_BOOT = "org.springframework.boot"
     const val SPRING_DEPENDENCY_MANAGEMENT = "io.spring.dependency-management"
+    const val KTLINT = "org.jlleitschuh.gradle.ktlint"
 }

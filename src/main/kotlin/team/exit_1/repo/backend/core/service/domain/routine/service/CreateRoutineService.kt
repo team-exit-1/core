@@ -14,29 +14,31 @@ import java.time.LocalDateTime
 @Service
 class CreateRoutineService(
     private val routineJpaRepository: RoutineJpaRepository,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) {
     @Transactional
     fun execute(request: CreateRoutineRequest): RoutineResponse {
         val userId = MockDataConfig.MOCK_USER_ID
         val now = LocalDateTime.now()
 
-        val routine = Routine().apply {
-            this.userId = userId
-            this.title = request.title
-            this.content = request.content
-            this.times = request.times
-            this.dayOfWeek = objectMapper.writeValueAsString(request.dayOfWeek)
-            this.createdAt = now
-            this.updatedAt = now
-        }
+        val routine =
+            Routine().apply {
+                this.userId = userId
+                this.title = request.title
+                this.content = request.content
+                this.times = request.times
+                this.dayOfWeek = objectMapper.writeValueAsString(request.dayOfWeek)
+                this.createdAt = now
+                this.updatedAt = now
+            }
 
         val savedRoutine = routineJpaRepository.save(routine)
 
-        val dayOfWeekList = objectMapper.readValue(
-            savedRoutine.dayOfWeek!!,
-            object : TypeReference<List<String>>() {}
-        )
+        val dayOfWeekList =
+            objectMapper.readValue(
+                savedRoutine.dayOfWeek!!,
+                object : TypeReference<List<String>>() {},
+            )
 
         return RoutineResponse(
             id = savedRoutine.id!!,
@@ -46,7 +48,7 @@ class CreateRoutineService(
             times = savedRoutine.times!!,
             dayOfWeek = dayOfWeekList,
             createdAt = savedRoutine.createdAt!!,
-            updatedAt = savedRoutine.updatedAt!!
+            updatedAt = savedRoutine.updatedAt!!,
         )
     }
 }

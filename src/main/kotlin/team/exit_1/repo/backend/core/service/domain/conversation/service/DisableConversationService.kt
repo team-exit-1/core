@@ -13,13 +13,14 @@ import team.exit_1.repo.backend.core.service.global.common.error.exception.Expec
 @Service
 class DisableConversationService(
     private val conversationRepository: ConversationJpaRepository,
-    private val eventPublisher: ApplicationEventPublisher
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     @Transactional
     fun execute(conversationId: String): ConversationResponse {
-        val conversation = conversationRepository.findById(conversationId).orElseThrow {
-            ExpectedException(message = "대화가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
-        }
+        val conversation =
+            conversationRepository.findById(conversationId).orElseThrow {
+                ExpectedException(message = "대화가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
+            }
         conversation.status = ConversationStatus.DISABLED
         val updatedConversation = conversationRepository.save(conversation)
 
@@ -27,8 +28,8 @@ class DisableConversationService(
             ConversationDisabledEvent(
                 source = this,
                 conversation = updatedConversation,
-                conversationId = conversationId
-            )
+                conversationId = conversationId,
+            ),
         )
 
         return ConversationResponse(
@@ -36,7 +37,7 @@ class DisableConversationService(
             userId = updatedConversation.userId!!,
             conversationStatus = updatedConversation.status,
             timestamp = updatedConversation.timestamp!!,
-            initialGreeting = null
+            initialGreeting = null,
         )
     }
 }

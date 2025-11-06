@@ -10,5 +10,5 @@ data class GameResultResponse(
     @field:JsonProperty("next_question_suggestion")
     val nextQuestionSuggestion: NextQuestionSuggestion,
     @field:JsonProperty("stored_at")
-    val storedAt: String
+    val storedAt: String,
 )

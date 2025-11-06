@@ -6,5 +6,5 @@ data class QuizOption(
     @field:JsonProperty("id")
     val id: String,
     @field:JsonProperty("text")
-    val text: String
+    val text: String,
 )

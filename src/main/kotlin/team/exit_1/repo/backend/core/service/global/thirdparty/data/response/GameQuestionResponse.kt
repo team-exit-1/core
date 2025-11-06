@@ -16,7 +16,7 @@ data class GameQuestionResponse(
     @field:JsonProperty("based_on_conversation")
     val basedOnConversation: String,
     val difficulty: String, // lowercase string from LLM
-    val metadata: QuestionMetadata
+    val metadata: QuestionMetadata,
 ) {
     fun parseQuestionType(): QuestionType? = QuestionType.fromString(questionType)
 

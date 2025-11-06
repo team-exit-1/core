@@ -12,7 +12,7 @@ import team.exit_1.repo.backend.core.service.global.thirdparty.client.RagService
 @Service
 class QueryPersonalInfoService(
     private val ragServiceClient: RagServiceClient,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) {
     @Transactional(readOnly = true)
     fun execute(): PersonalInfoListResponse {
@@ -23,21 +23,23 @@ class QueryPersonalInfoService(
         if (!llmResponse.success || llmResponse.data == null) {
             throw ExpectedException(
                 message = "RAG 서버에서 개인정보 조회에 실패했습니다: ${llmResponse.error?.message}",
-                statusCode = HttpStatus.INTERNAL_SERVER_ERROR
+                statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
             )
         }
 
-        val dataMap = llmResponse.data as? Map<*, *>
-            ?: throw ExpectedException(
-                message = "RAG 서버 응답 형식이 올바르지 않습니다",
-                statusCode = HttpStatus.INTERNAL_SERVER_ERROR
-            )
+        val dataMap =
+            llmResponse.data as? Map<*, *>
+                ?: throw ExpectedException(
+                    message = "RAG 서버 응답 형식이 올바르지 않습니다",
+                    statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
+                )
 
-        val personalInfoListData = dataMap["personal_info_list"]
-            ?: throw ExpectedException(
-                message = "RAG 서버 응답에 personal_info_list가 없습니다",
-                statusCode = HttpStatus.INTERNAL_SERVER_ERROR
-            )
+        val personalInfoListData =
+            dataMap["personal_info_list"]
+                ?: throw ExpectedException(
+                    message = "RAG 서버 응답에 personal_info_list가 없습니다",
+                    statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
+                )
 
         return objectMapper.convertValue(personalInfoListData, PersonalInfoListResponse::class.java)
     }

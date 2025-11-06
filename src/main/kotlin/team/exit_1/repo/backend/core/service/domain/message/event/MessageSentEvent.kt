@@ -6,5 +6,5 @@ data class MessageSentEvent(
     val conversationId: String,
     val messageId: Long,
     val userId: String,
-    val content: String
+    val content: String,
 ) : ApplicationEvent(conversationId)

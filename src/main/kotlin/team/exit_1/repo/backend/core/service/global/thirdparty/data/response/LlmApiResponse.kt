@@ -7,5 +7,5 @@ data class LlmApiResponse(
     val success: Boolean = false,
     val data: Map<String, Any>? = null,
     val error: LlmErrorInfo? = null,
-    val metadata: LlmMetadata? = null
+    val metadata: LlmMetadata? = null,
 )

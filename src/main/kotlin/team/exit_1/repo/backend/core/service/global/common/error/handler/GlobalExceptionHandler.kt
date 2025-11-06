@@ -4,11 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.multipart.MaxUploadSizeExceededException
-import org.springframework.http.converter.HttpMessageNotReadableException
 import team.exit_1.repo.backend.core.service.global.common.error.exception.ExpectedException
 import team.exit_1.repo.backend.core.service.global.common.response.data.reponse.CommonApiResponse
 
@@ -30,7 +30,7 @@ class GlobalExceptionHandler {
         logger.trace("유효성 검증 실패 상세: ", ex)
         return CommonApiResponse.error(
             methodArgumentNotValidExceptionToJson(ex),
-            HttpStatus.BAD_REQUEST
+            HttpStatus.BAD_REQUEST,
         )
     }
 
@@ -60,7 +60,7 @@ class GlobalExceptionHandler {
         logger.trace("파일 크기 초과 상세: ", ex)
         return CommonApiResponse.error(
             "파일 크기가 너무 큽니다. 제한 크기: ${ex.maxUploadSize}",
-            HttpStatus.BAD_REQUEST
+            HttpStatus.BAD_REQUEST,
         )
     }
 

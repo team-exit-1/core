@@ -15,7 +15,7 @@ import team.exit_1.repo.backend.core.service.global.thirdparty.error.FeignErrorD
 @Configuration
 @EnableFeignClients(basePackages = ["team.exit_1"])
 class FeignConfig(
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) {
     @Bean
     fun feignErrorDecoder(): FeignErrorDecoder = FeignErrorDecoder()

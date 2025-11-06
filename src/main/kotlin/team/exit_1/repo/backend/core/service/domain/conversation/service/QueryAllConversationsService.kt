@@ -7,19 +7,19 @@ import team.exit_1.repo.backend.core.service.domain.conversation.data.repository
 
 @Service
 class QueryAllConversationsService(
-    private val conversationJpaRepository: ConversationJpaRepository
+    private val conversationJpaRepository: ConversationJpaRepository,
 ) {
     @Transactional(readOnly = true)
-    fun execute(): List<ConversationResponse> {
-        return conversationJpaRepository.findAll()
+    fun execute(): List<ConversationResponse> =
+        conversationJpaRepository
+            .findAll()
             .map { conversation ->
                 ConversationResponse(
                     conversationId = conversation.id!!,
                     userId = conversation.userId!!,
                     timestamp = conversation.timestamp!!,
                     conversationStatus = conversation.status,
-                    initialGreeting = null
+                    initialGreeting = null,
                 )
             }
-    }
 }

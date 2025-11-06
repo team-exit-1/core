@@ -17,17 +17,17 @@ import team.exit_1.repo.backend.core.service.global.thirdparty.client.LlmService
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.request.ChatRequest
 import team.exit_1.repo.backend.core.service.global.thirdparty.data.response.ChatResponse
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Service
 class CreateConversationService(
     private val conversationJpaRepository: ConversationJpaRepository,
     private val messageJpaRepository: MessageJpaRepository,
     private val llmServiceClient: LlmServiceClient,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) {
-
-    private final val greetingMessage = "오늘 무슨 일이 있었는지 나에게 물어봐줘. ( 이 질문에 대해선 답변을 하지말고 너가 먼저 말을 거는 것 처럼 해줘 )" +
+    private final val greetingMessage =
+        "오늘 무슨 일이 있었는지 나에게 물어봐줘. ( 이 질문에 대해선 답변을 하지말고 너가 먼저 말을 거는 것 처럼 해줘 )" +
             "당신은 치매 예방 및 완화를 돕는 대화형 AI입니다.  \n" +
             "사용자는 기억력 저하나 인지력 감퇴를 겪고 있을 수 있으며, 당신의 목표는 **따뜻하고 친근한 음성 대화를 통해 사용자의 두뇌 활동을 자극하고 정서적 안정감을 주는 것**입니다.  \n" +
             "\n" +
@@ -55,18 +55,20 @@ class CreateConversationService(
     fun execute(): ConversationResponse {
         val conversationId = "conv_${UUID.randomUUID()}"
 
-        val conversation = conversationJpaRepository.save(
-            Conversation().apply {
-                this.userId = MOCK_USER_ID
-                this.id = conversationId
-                this.timestamp = LocalDateTime.now()
-            }
-        )
+        val conversation =
+            conversationJpaRepository.save(
+                Conversation().apply {
+                    this.userId = MOCK_USER_ID
+                    this.id = conversationId
+                    this.timestamp = LocalDateTime.now()
+                },
+            )
 
-        val greetingRequest = ChatRequest(
-            userId = MOCK_USER_ID,
-            message = greetingMessage
-        )
+        val greetingRequest =
+            ChatRequest(
+                userId = MOCK_USER_ID,
+                message = greetingMessage,
+            )
 
         logger().info("대화 시작 인사말 요청 - conversationId: $conversationId, userId: $MOCK_USER_ID")
 
@@ -75,19 +77,20 @@ class CreateConversationService(
         if (!llmResponse.success || llmResponse.data == null) {
             throw ExpectedException(
                 message = "LLM 서버 인사말 응답 실패: ${llmResponse.error?.message ?: "알 수 없는 오류"}",
-                statusCode = HttpStatus.INTERNAL_SERVER_ERROR
+                statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
             )
         }
 
         val chatResponse = objectMapper.convertValue(llmResponse.data, ChatResponse::class.java)
         val greetingMessage = chatResponse.response
 
-        val aiGreetingMessage = Message().apply {
-            this.conversationId = conversation
-            this.content = greetingMessage
-            this.role = ConversationParticipantType.ASSISTANT
-            this.timestamp = LocalDateTime.now()
-        }
+        val aiGreetingMessage =
+            Message().apply {
+                this.conversationId = conversation
+                this.content = greetingMessage
+                this.role = ConversationParticipantType.ASSISTANT
+                this.timestamp = LocalDateTime.now()
+            }
 
         messageJpaRepository.save(aiGreetingMessage)
         logger().info("AI 인사말 메시지 저장 완료 - conversationId: $conversationId")
@@ -97,7 +100,7 @@ class CreateConversationService(
             userId = conversation.userId!!,
             conversationStatus = conversation.status,
             timestamp = conversation.timestamp!!,
-            initialGreeting = greetingMessage
+            initialGreeting = greetingMessage,
         )
     }
 }

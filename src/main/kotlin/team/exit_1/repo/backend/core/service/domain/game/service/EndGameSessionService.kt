@@ -11,17 +11,19 @@ import java.time.LocalDateTime
 
 @Service
 class EndGameSessionService(
-    private val gameSessionJpaRepository: GameSessionJpaRepository
+    private val gameSessionJpaRepository: GameSessionJpaRepository,
 ) {
     @Transactional
     fun execute(sessionId: String): GameSessionResponse {
-        val gameSession = gameSessionJpaRepository.findById(sessionId)
-            .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
+        val gameSession =
+            gameSessionJpaRepository
+                .findById(sessionId)
+                .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
 
         if (gameSession.status == GameSessionStatus.COMPLETED) {
             throw ExpectedException(
                 message = "이미 종료된 게임 세션입니다.",
-                statusCode = HttpStatus.CONFLICT
+                statusCode = HttpStatus.CONFLICT,
             )
         }
 
@@ -37,7 +39,7 @@ class EndGameSessionService(
             startTime = savedSession.startTime!!,
             endTime = savedSession.endTime,
             totalScore = savedSession.totalScore,
-            currentDifficulty = savedSession.currentDifficulty
+            currentDifficulty = savedSession.currentDifficulty,
         )
     }
 }

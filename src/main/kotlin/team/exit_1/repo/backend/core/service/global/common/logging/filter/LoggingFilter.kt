@@ -17,7 +17,6 @@ import java.util.UUID
 
 @Component
 class LoggingFilter : OncePerRequestFilter() {
-
     companion object {
         private val NOT_LOGGING_URL =
             arrayOf(
@@ -115,11 +114,9 @@ class LoggingFilter : OncePerRequestFilter() {
         }
     }
 
-    private fun isNotLoggingURL(requestURI: String): Boolean =
-        NOT_LOGGING_URL.any { pattern -> matcher.match(pattern, requestURI) }
+    private fun isNotLoggingURL(requestURI: String): Boolean = NOT_LOGGING_URL.any { pattern -> matcher.match(pattern, requestURI) }
 
-    private fun isMultipart(request: HttpServletRequest): Boolean =
-        request.contentType?.lowercase()?.startsWith("multipart/") ?: false
+    private fun isMultipart(request: HttpServletRequest): Boolean = request.contentType?.lowercase()?.startsWith("multipart/") ?: false
 
     private fun requestLogging(
         request: HttpServletRequest,
@@ -186,6 +183,5 @@ class LoggingFilter : OncePerRequestFilter() {
         return if (StringUtils.hasText(oneLineContent)) oneLineContent else "[empty]"
     }
 
-    private fun formatCookies(cookies: Array<Cookie>?): String =
-        cookies?.joinToString(", ") { "${it.name}=${it.value}" } ?: "[none]"
+    private fun formatCookies(cookies: Array<Cookie>?): String = cookies?.joinToString(", ") { "${it.name}=${it.value}" } ?: "[none]"
 }

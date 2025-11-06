@@ -27,48 +27,58 @@ class SubmitQuizAnswerService(
     private val quizJpaRepository: QuizJpaRepository,
     private val quizAttemptJpaRepository: QuizAttemptJpaRepository,
     private val llmServiceClient: LlmServiceClient,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) {
     @Transactional
-    fun execute(sessionId: String, request: SubmitQuizAnswerRequest): QuizAttemptResponse {
-        val gameSession = gameSessionJpaRepository.findById(sessionId)
-            .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
+    fun execute(
+        sessionId: String,
+        request: SubmitQuizAnswerRequest,
+    ): QuizAttemptResponse {
+        val gameSession =
+            gameSessionJpaRepository
+                .findById(sessionId)
+                .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
 
         validateGameSession(gameSession)
 
-        val quiz = quizJpaRepository.findById(request.quizId)
-            .orElseThrow { ExpectedException(message = "퀴즈가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
+        val quiz =
+            quizJpaRepository
+                .findById(request.quizId)
+                .orElseThrow { ExpectedException(message = "퀴즈가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
 
         if (quizAttemptJpaRepository.existsByGameSessionAndQuiz(gameSession, quiz)) {
             throw ExpectedException(
                 message = "이미 답변을 제출한 퀴즈입니다.",
-                statusCode = HttpStatus.CONFLICT
+                statusCode = HttpStatus.CONFLICT,
             )
         }
 
-        val userId = gameSession.userId
-            ?: throw ExpectedException(message = "사용자 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
+        val userId =
+            gameSession.userId
+                ?: throw ExpectedException(message = "사용자 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
 
         val isCorrect = quiz.correctAnswer?.trim()?.equals(request.answer.trim(), ignoreCase = true) ?: false
 
-        val score = if (isCorrect) {
-            when (quiz.difficulty) {
-                QuizDifficulty.EASY -> 10
-                QuizDifficulty.MEDIUM -> 20
-                QuizDifficulty.HARD -> 30
+        val score =
+            if (isCorrect) {
+                when (quiz.difficulty) {
+                    QuizDifficulty.EASY -> 10
+                    QuizDifficulty.MEDIUM -> 20
+                    QuizDifficulty.HARD -> 30
+                }
+            } else {
+                0
             }
-        } else {
-            0
-        }
 
-        val quizAttempt = QuizAttempt().apply {
-            this.gameSession = gameSession
-            this.quiz = quiz
-            this.userAnswer = request.answer
-            this.isCorrect = isCorrect
-            this.score = score
-            this.attemptTime = LocalDateTime.now()
-        }
+        val quizAttempt =
+            QuizAttempt().apply {
+                this.gameSession = gameSession
+                this.quiz = quiz
+                this.userAnswer = request.answer
+                this.isCorrect = isCorrect
+                this.score = score
+                this.attemptTime = LocalDateTime.now()
+            }
 
         val savedAttempt = quizAttemptJpaRepository.save(quizAttempt)
 
@@ -76,23 +86,24 @@ class SubmitQuizAnswerService(
 
         try {
             if (quiz.llmQuestionId != null) {
-                val llmResponse = llmServiceClient.evaluateGameResult(
-                    GameResultRequest(
-                        userId = userId,
-                        questionId = quiz.llmQuestionId!!,
-                        userAnswer = request.answer,
-                        isCorrect = isCorrect,
-                        gameSessionId = sessionId
+                val llmResponse =
+                    llmServiceClient.evaluateGameResult(
+                        GameResultRequest(
+                            userId = userId,
+                            questionId = quiz.llmQuestionId!!,
+                            userAnswer = request.answer,
+                            isCorrect = isCorrect,
+                            gameSessionId = sessionId,
+                        ),
                     )
-                )
 
                 if (llmResponse.success && llmResponse.data != null) {
                     val resultResponse = objectMapper.convertValue(llmResponse.data, GameResultResponse::class.java)
 
                     logger().info(
                         "게임 결과 평가 완료 - Topic: ${resultResponse.memoryEvaluation.topic}, " +
-                        "RetentionScore: ${resultResponse.memoryEvaluation.retentionScore}, " +
-                        "Recommendation: ${resultResponse.memoryEvaluation.recommendation}"
+                            "RetentionScore: ${resultResponse.memoryEvaluation.retentionScore}, " +
+                            "Recommendation: ${resultResponse.memoryEvaluation.recommendation}",
                     )
 
                     updateDifficulty(gameSession, resultResponse.nextQuestionSuggestion.difficulty)
@@ -123,7 +134,7 @@ class SubmitQuizAnswerService(
             userAnswer = savedAttempt.userAnswer!!,
             isCorrect = savedAttempt.isCorrect,
             score = savedAttempt.score,
-            attemptTime = savedAttempt.attemptTime!!
+            attemptTime = savedAttempt.attemptTime!!,
         )
     }
 
@@ -131,7 +142,7 @@ class SubmitQuizAnswerService(
         if (gameSession.status == GameSessionStatus.COMPLETED) {
             throw ExpectedException(
                 message = "이미 종료된 게임 세션입니다.",
-                statusCode = HttpStatus.CONFLICT
+                statusCode = HttpStatus.CONFLICT,
             )
         }
 
@@ -145,12 +156,13 @@ class SubmitQuizAnswerService(
 
             throw ExpectedException(
                 message = "게임 세션이 최대 퀴즈 개수(${maxQuizCount}개)에 도달하여 자동 종료되었습니다.",
-                statusCode = HttpStatus.GONE
+                statusCode = HttpStatus.GONE,
             )
         }
 
-        val startTime = gameSession.startTime
-            ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
+        val startTime =
+            gameSession.startTime
+                ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
 
         val now = LocalDateTime.now()
         val timeLimitHours = MockDataConfig.GAME_SESSION_TIME_LIMIT_HOURS
@@ -163,12 +175,15 @@ class SubmitQuizAnswerService(
 
             throw ExpectedException(
                 message = "게임 세션이 시간 제한(${timeLimitHours}시간)을 초과하여 자동 종료되었습니다.",
-                statusCode = HttpStatus.GONE
+                statusCode = HttpStatus.GONE,
             )
         }
     }
 
-    private fun updateDifficulty(gameSession: GameSession, suggestedDifficulty: String) {
+    private fun updateDifficulty(
+        gameSession: GameSession,
+        suggestedDifficulty: String,
+    ) {
         val newDifficulty = QuizDifficulty.fromString(suggestedDifficulty)
         if (newDifficulty == null) {
             logger().warn("알 수 없는 난이도 값: $suggestedDifficulty. 현재 난이도 유지")

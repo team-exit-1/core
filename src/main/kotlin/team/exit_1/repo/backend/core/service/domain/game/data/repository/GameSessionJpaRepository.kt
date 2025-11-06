@@ -8,5 +8,9 @@ import team.exit_1.repo.backend.core.service.domain.game.data.entity.GameSession
 @Repository
 interface GameSessionJpaRepository : JpaRepository<GameSession, String> {
     fun findAllByUserId(userId: String): List<GameSession>
-    fun findByUserIdAndStatus(userId: String, status: GameSessionStatus): GameSession?
+
+    fun findByUserIdAndStatus(
+        userId: String,
+        status: GameSessionStatus,
+    ): GameSession?
 }

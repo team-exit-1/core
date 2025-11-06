@@ -8,7 +8,7 @@ import team.exit_1.repo.backend.core.service.global.common.error.exception.Expec
 
 @Service
 class DeleteConversationService(
-    private val conversationJpaRepository: ConversationJpaRepository
+    private val conversationJpaRepository: ConversationJpaRepository,
 ) {
     @Transactional
     fun execute(conversationId: String) {

@@ -30,77 +30,85 @@ class QueryQuizzesService(
     private val quizJpaRepository: QuizJpaRepository,
     private val quizAttemptJpaRepository: QuizAttemptJpaRepository,
     private val llmServiceClient: LlmServiceClient,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) {
     @Transactional
     fun execute(sessionId: String): List<QuizResponse> {
-        val gameSession = gameSessionJpaRepository.findById(sessionId)
-            .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
+        val gameSession =
+            gameSessionJpaRepository
+                .findById(sessionId)
+                .orElseThrow { ExpectedException(message = "게임 세션이 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND) }
 
         validateGameSession(gameSession)
 
-        val userId = gameSession.userId
-            ?: throw ExpectedException(message = "사용자 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
+        val userId =
+            gameSession.userId
+                ?: throw ExpectedException(message = "사용자 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
 
-        val questionType = if (gameSession.currentDifficulty == QuizDifficulty.EASY) {
-            QuestionTypeRequest.FILL_IN_BLANK
-        } else {
-            QuestionTypeRequest.MULTIPLE_CHOICE
-        }
+        val questionType =
+            if (gameSession.currentDifficulty == QuizDifficulty.EASY) {
+                QuestionTypeRequest.FILL_IN_BLANK
+            } else {
+                QuestionTypeRequest.MULTIPLE_CHOICE
+            }
         val difficultyHint = QuizDifficultyRequest.from(gameSession.currentDifficulty)
 
-        val llmResponse = llmServiceClient.generateGameQuestion(
-            GameQuestionRequest(
-                userId = userId,
-                questionType = questionType,
-                difficultyHint = difficultyHint
+        val llmResponse =
+            llmServiceClient.generateGameQuestion(
+                GameQuestionRequest(
+                    userId = userId,
+                    questionType = questionType,
+                    difficultyHint = difficultyHint,
+                ),
             )
-        )
 
         if (!llmResponse.success || llmResponse.data == null) {
             throw ExpectedException(
                 message = "LLM 서버에서 질문 생성에 실패했습니다: ${llmResponse.error?.message}",
-                statusCode = HttpStatus.INTERNAL_SERVER_ERROR
+                statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
             )
         }
 
         val questionResponse = objectMapper.convertValue(llmResponse.data, GameQuestionResponse::class.java)
 
-        val parsedQuestionType = questionResponse.parseQuestionType()
-            ?: throw ExpectedException(
-                message = "LLM 서버에서 알 수 없는 질문 타입을 반환했습니다: ${questionResponse.questionType}",
-                statusCode = HttpStatus.INTERNAL_SERVER_ERROR
-            )
+        val parsedQuestionType =
+            questionResponse.parseQuestionType()
+                ?: throw ExpectedException(
+                    message = "LLM 서버에서 알 수 없는 질문 타입을 반환했습니다: ${questionResponse.questionType}",
+                    statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
+                )
 
-        val quiz = Quiz().apply {
-            this.llmQuestionId = questionResponse.questionId
-            this.questionType = parsedQuestionType
-            this.question = questionResponse.question
-            this.correctAnswer = questionResponse.correctAnswer
-            this.difficulty = gameSession.currentDifficulty
-            this.topic = questionResponse.metadata.topic
-            this.basedOnConversation = questionResponse.basedOnConversation
-            this.memoryScore = questionResponse.metadata.memoryScore
-            this.daysSinceConversation = questionResponse.metadata.daysSinceConversation
-            this.category = questionResponse.metadata.topic
+        val quiz =
+            Quiz().apply {
+                this.llmQuestionId = questionResponse.questionId
+                this.questionType = parsedQuestionType
+                this.question = questionResponse.question
+                this.correctAnswer = questionResponse.correctAnswer
+                this.difficulty = gameSession.currentDifficulty
+                this.topic = questionResponse.metadata.topic
+                this.basedOnConversation = questionResponse.basedOnConversation
+                this.memoryScore = questionResponse.metadata.memoryScore
+                this.daysSinceConversation = questionResponse.metadata.daysSinceConversation
+                this.category = questionResponse.metadata.topic
 
-            if (questionResponse.options != null) {
-                this.options = objectMapper.writeValueAsString(questionResponse.options)
+                if (questionResponse.options != null) {
+                    this.options = objectMapper.writeValueAsString(questionResponse.options)
+                }
             }
-        }
 
         val savedQuiz = quizJpaRepository.save(quiz)
 
         // QuizResponse 생성
-        val quizOptions = savedQuiz.options?.let { optionsJson ->
-            val type = object : TypeReference<List<Map<String, String>>>() {}
-            objectMapper.readValue(optionsJson, type).map { option ->
-                QuizOption(
-                    id = option["id"] ?: "",
-                    text = option["text"] ?: ""
-                )
+        val quizOptions =
+            savedQuiz.options?.let { optionsJson ->
+                val type = object : TypeReference<List<Map<String, String>>>() {}
+                objectMapper.readValue(optionsJson, type).map { option ->
+                    QuizOption(
+                        id = option["id"] ?: "",
+                        text = option["text"] ?: "",
+                    )
+                }
             }
-        }
 
         return listOf(
             QuizResponse(
@@ -112,8 +120,8 @@ class QueryQuizzesService(
                 topic = savedQuiz.topic,
                 basedOnConversation = savedQuiz.basedOnConversation,
                 category = savedQuiz.category,
-                hint = savedQuiz.hint
-            )
+                hint = savedQuiz.hint,
+            ),
         )
     }
 
@@ -121,7 +129,7 @@ class QueryQuizzesService(
         if (gameSession.status == GameSessionStatus.COMPLETED) {
             throw ExpectedException(
                 message = "이미 종료된 게임 세션입니다.",
-                statusCode = HttpStatus.CONFLICT
+                statusCode = HttpStatus.CONFLICT,
             )
         }
 
@@ -135,12 +143,13 @@ class QueryQuizzesService(
 
             throw ExpectedException(
                 message = "게임 세션이 최대 퀴즈 개수(${maxQuizCount}개)에 도달하여 자동 종료되었습니다.",
-                statusCode = HttpStatus.GONE
+                statusCode = HttpStatus.GONE,
             )
         }
 
-        val startTime = gameSession.startTime
-            ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
+        val startTime =
+            gameSession.startTime
+                ?: throw ExpectedException(message = "게임 세션 시작 시간이 존재하지 않습니다.", statusCode = HttpStatus.INTERNAL_SERVER_ERROR)
 
         val now = LocalDateTime.now()
         val timeLimitHours = MockDataConfig.GAME_SESSION_TIME_LIMIT_HOURS
@@ -153,7 +162,7 @@ class QueryQuizzesService(
 
             throw ExpectedException(
                 message = "게임 세션이 시간 제한(${timeLimitHours}시간)을 초과하여 자동 종료되었습니다.",
-                statusCode = HttpStatus.GONE
+                statusCode = HttpStatus.GONE,
             )
         }
     }

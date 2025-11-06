@@ -5,5 +5,5 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class NextQuestionSuggestion(
     val difficulty: String,
     @field:JsonProperty("topic_preference")
-    val topicPreference: String
+    val topicPreference: String,
 )

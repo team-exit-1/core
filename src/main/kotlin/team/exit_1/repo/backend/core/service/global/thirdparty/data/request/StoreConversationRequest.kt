@@ -7,5 +7,5 @@ data class StoreConversationRequest(
     @field:JsonProperty("conversation_id")
     val conversationId: String,
     val messages: List<MessageDto>,
-    val metadata: Map<String, String>? = null
+    val metadata: Map<String, String>? = null,
 )

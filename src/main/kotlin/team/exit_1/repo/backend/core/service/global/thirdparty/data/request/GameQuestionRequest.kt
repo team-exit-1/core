@@ -8,5 +8,5 @@ data class GameQuestionRequest(
     @field:JsonProperty("question_type")
     val questionType: QuestionTypeRequest,
     @field:JsonProperty("difficulty_hint")
-    val difficultyHint: QuizDifficultyRequest? = null
+    val difficultyHint: QuizDifficultyRequest? = null,
 )

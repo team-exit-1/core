@@ -8,17 +8,19 @@ import team.exit_1.repo.backend.core.service.global.common.error.exception.Expec
 
 @Service
 class DeleteRoutineService(
-    private val routineJpaRepository: RoutineJpaRepository
+    private val routineJpaRepository: RoutineJpaRepository,
 ) {
     @Transactional
     fun execute(routineId: Long) {
-        val routine = routineJpaRepository.findById(routineId)
-            .orElseThrow {
-                ExpectedException(
-                    message = "루틴을 찾을 수 없습니다.",
-                    statusCode = HttpStatus.NOT_FOUND
-                )
-            }
+        val routine =
+            routineJpaRepository
+                .findById(routineId)
+                .orElseThrow {
+                    ExpectedException(
+                        message = "루틴을 찾을 수 없습니다.",
+                        statusCode = HttpStatus.NOT_FOUND,
+                    )
+                }
 
         routineJpaRepository.delete(routine)
     }

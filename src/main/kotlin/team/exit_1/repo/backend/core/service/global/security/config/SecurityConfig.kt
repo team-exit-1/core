@@ -24,29 +24,36 @@ class SecurityConfig(
 ) {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        http.csrf(CsrfConfigurer<*>::disable).cors {
-            it.configurationSource {
-                val cors = CorsConfiguration()
-                cors.allowedOrigins = corsEnvironment.allowedOrigins
-                cors.addAllowedHeader("*")
-                cors.allowedMethods = HttpMethod.values().map(HttpMethod::name)
-                cors.allowCredentials = true
-                cors.maxAge = 3600L
-                cors
-            }
-        }.httpBasic(HttpBasicConfigurer<*>::disable).formLogin(FormLoginConfigurer<*>::disable)
+        http
+            .csrf(CsrfConfigurer<*>::disable)
+            .cors {
+                it.configurationSource {
+                    val cors = CorsConfiguration()
+                    cors.allowedOrigins = corsEnvironment.allowedOrigins
+                    cors.addAllowedHeader("*")
+                    cors.allowedMethods = HttpMethod.values().map(HttpMethod::name)
+                    cors.allowCredentials = true
+                    cors.maxAge = 3600L
+                    cors
+                }
+            }.httpBasic(HttpBasicConfigurer<*>::disable)
+            .formLogin(FormLoginConfigurer<*>::disable)
             .logout(LogoutConfigurer<*>::disable)
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .formLogin { it.disable() }
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers(
-                    "/v3/api-docs/**", "/swagger-ui/**", "/actuator/**",
-                ).permitAll().anyRequest().permitAll()
+                auth
+                    .requestMatchers(
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/actuator/**",
+                    ).permitAll()
+                    .anyRequest()
+                    .permitAll()
             }
 
         return http.build()
     }
-
 
     @Bean
     fun passwordEncoder(): BCryptPasswordEncoder = BCryptPasswordEncoder()

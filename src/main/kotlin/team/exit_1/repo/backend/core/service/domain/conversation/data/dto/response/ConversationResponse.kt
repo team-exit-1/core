@@ -23,5 +23,5 @@ data class ConversationResponse(
     val timestamp: LocalDateTime,
     @field:JsonProperty("initial_greeting")
     @field:Schema(description = "AI의 첫 인사말", example = "안녕하세요! 저는 당신의 AI 친구입니다. 오늘 하루는 어떠셨나요?")
-    val initialGreeting: String?
+    val initialGreeting: String?,
 )

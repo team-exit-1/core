@@ -7,16 +7,13 @@ data class CreateRoutineRequest(
     @field:Schema(description = "루틴 제목", example = "운동하기")
     @field:JsonProperty("title")
     val title: String,
-
     @field:Schema(description = "루틴 내용", example = "아침 조깅 30분")
     @field:JsonProperty("content")
     val content: String,
-
     @field:Schema(description = "알림 시각", example = "06:00")
     @field:JsonProperty("times")
     val times: String,
-
     @field:Schema(description = "반복 요일", example = "[\"월\", \"화\", \"금\"]")
     @field:JsonProperty("day_of_week")
-    val dayOfWeek: List<String>
+    val dayOfWeek: List<String>,
 )

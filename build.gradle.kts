@@ -1,9 +1,10 @@
 plugins {
-    kotlin("jvm") version PluginVersion.KOTLIN
-    kotlin("plugin.spring") version PluginVersion.KOTLIN
-    kotlin("plugin.jpa") version PluginVersion.KOTLIN
+    id(Plugins.KOTLIN_JVM) version PluginVersion.KOTLIN
+    id(Plugins.KOTLIN_SPRING) version PluginVersion.KOTLIN
+    id(Plugins.KOTLIN_JPA) version PluginVersion.KOTLIN
     id(Plugins.SPRING_BOOT) version PluginVersion.SPRING_BOOT
     id(Plugins.SPRING_DEPENDENCY_MANAGEMENT) version PluginVersion.SPRING_DEPENDENCY_MANAGEMENT
+    id(Plugins.KTLINT) version PluginVersion.KTLINT_VERSION
 }
 
 group = "team.exit-1.backend"
@@ -77,4 +78,10 @@ tasks.jar {
 
 tasks.bootJar {
     isEnabled = true
+}
+
+configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    filter {
+        exclude("**/generated/**")
+    }
 }

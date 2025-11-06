@@ -9,17 +9,16 @@ import team.exit_1.repo.backend.core.service.domain.game.data.entity.GameSession
 import team.exit_1.repo.backend.core.service.domain.game.data.repository.GameSessionJpaRepository
 import team.exit_1.repo.backend.core.service.global.config.MockDataConfig
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Service
 class StartGameSessionService(
-    private val gameSessionJpaRepository: GameSessionJpaRepository
+    private val gameSessionJpaRepository: GameSessionJpaRepository,
 ) {
     @Transactional
     fun execute(): GameSessionResponse {
         val userId = MockDataConfig.MOCK_USER_ID
 
-        // 이미 진행중인 세션이 있는지 확인
         val existingSession = gameSessionJpaRepository.findByUserIdAndStatus(userId, GameSessionStatus.IN_PROGRESS)
         if (existingSession != null) {
             return GameSessionResponse(
@@ -29,18 +28,19 @@ class StartGameSessionService(
                 startTime = existingSession.startTime!!,
                 endTime = existingSession.endTime,
                 totalScore = existingSession.totalScore,
-                currentDifficulty = existingSession.currentDifficulty
+                currentDifficulty = existingSession.currentDifficulty,
             )
         }
 
-        val gameSession = GameSession().apply {
-            this.id = "session_${UUID.randomUUID()}"
-            this.userId = userId
-            this.status = GameSessionStatus.IN_PROGRESS
-            this.startTime = LocalDateTime.now()
-            this.totalScore = 0
-            this.currentDifficulty = QuizDifficulty.EASY
-        }
+        val gameSession =
+            GameSession().apply {
+                this.id = "session_${UUID.randomUUID()}"
+                this.userId = userId
+                this.status = GameSessionStatus.IN_PROGRESS
+                this.startTime = LocalDateTime.now()
+                this.totalScore = 0
+                this.currentDifficulty = QuizDifficulty.EASY
+            }
 
         val savedSession = gameSessionJpaRepository.save(gameSession)
 
@@ -51,7 +51,7 @@ class StartGameSessionService(
             startTime = savedSession.startTime!!,
             endTime = savedSession.endTime,
             totalScore = savedSession.totalScore,
-            currentDifficulty = savedSession.currentDifficulty
+            currentDifficulty = savedSession.currentDifficulty,
         )
     }
 }
