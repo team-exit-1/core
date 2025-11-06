@@ -1,6 +1,7 @@
 package team.exit_1.repo.backend.core.service.domain.routine.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -10,6 +11,7 @@ import team.exit_1.repo.backend.core.service.domain.routine.data.dto.request.Cre
 import team.exit_1.repo.backend.core.service.domain.routine.data.dto.response.RoutineListResponse
 import team.exit_1.repo.backend.core.service.domain.routine.data.dto.response.RoutineResponse
 import team.exit_1.repo.backend.core.service.domain.routine.service.CreateRoutineService
+import team.exit_1.repo.backend.core.service.domain.routine.service.DeleteRoutineService
 import team.exit_1.repo.backend.core.service.domain.routine.service.QueryRoutinesService
 import team.exit_1.repo.backend.core.service.global.common.response.data.reponse.CommonApiResponse
 
@@ -18,7 +20,8 @@ import team.exit_1.repo.backend.core.service.global.common.response.data.reponse
 @RequestMapping("/v1/routines")
 class RoutineController(
     private val createRoutineService: CreateRoutineService,
-    private val queryRoutinesService: QueryRoutinesService
+    private val queryRoutinesService: QueryRoutinesService,
+    private val deleteRoutineService: DeleteRoutineService
 ) {
 
     @PostMapping
@@ -60,5 +63,28 @@ class RoutineController(
             "루틴 목록이 성공적으로 조회되었습니다",
             queryRoutinesService.execute()
         )
+    }
+
+    @DeleteMapping("/{routineId}")
+    @Operation(summary = "루틴 삭제", description = "등록된 루틴을 삭제합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "루틴이 성공적으로 삭제되었습니다."
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "루틴을 찾을 수 없습니다.",
+                content = [Content()]
+            )
+        ]
+    )
+    fun deleteRoutine(
+        @Parameter(description = "루틴 ID", example = "1")
+        @PathVariable routineId: Long
+    ): CommonApiResponse<Nothing> {
+        deleteRoutineService.execute(routineId)
+        return CommonApiResponse.success("루틴이 성공적으로 삭제되었습니다",)
     }
 }
