@@ -3,10 +3,10 @@ package team.exit_1.repo.backend.core.service.global.thirdparty.data.request
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class ChatRequest(
-    @JsonProperty("user_id")
+    @field:JsonProperty("user_id")
     val userId: String,
 
-    @JsonProperty("message")
+    @field:JsonProperty("message")
     val message: String
 )
 

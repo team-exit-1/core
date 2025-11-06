@@ -4,19 +4,19 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.LocalDateTime
 
 data class ChatResponse(
-    @JsonProperty("conversation_id")
+    @field:JsonProperty("conversation_id")
     val conversationId: String?,
 
-    @JsonProperty("message")
+    @field:JsonProperty("message")
     val message: String?,
 
-    @JsonProperty("response")
+    @field:JsonProperty("response")
     val response: String,
 
-    @JsonProperty("context_used")
+    @field:JsonProperty("context_used")
     val contextUsed: ContextUsage?,
 
-    @JsonProperty("created_at")
+    @field:JsonProperty("created_at")
     val createdAt: LocalDateTime?
 )
 
