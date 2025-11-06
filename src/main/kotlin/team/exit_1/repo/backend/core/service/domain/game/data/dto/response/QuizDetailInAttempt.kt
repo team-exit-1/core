@@ -10,7 +10,7 @@ data class QuizDetailInAttempt(
     @field:JsonProperty("quiz_id")
     val quizId: Long,
 
-    @field:Schema(description = "질문 타입", example = "ox")
+    @field:Schema(description = "질문 타입", example = "fill_in_blank")
     @field:JsonProperty("question_type")
     val questionType: QuestionTypeDto?,
 

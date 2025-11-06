@@ -8,9 +8,9 @@ data class GameQuestionResponse(
     @field:JsonProperty("question_id")
     val questionId: String,
     @field:JsonProperty("question_type")
-    val questionType: String, // lowercase string from LLM
+    val questionType: String, // lowercase string from LLM (fill_in_blank or multiple_choice)
     val question: String,
-    val options: List<QuestionOption>? = null, // multiple_choice only
+    val options: List<QuestionOption>? = null, // fill_in_blank and multiple_choice
     @field:JsonProperty("correct_answer")
     val correctAnswer: String,
     @field:JsonProperty("based_on_conversation")

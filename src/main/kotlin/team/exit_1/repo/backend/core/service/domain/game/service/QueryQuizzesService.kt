@@ -43,7 +43,7 @@ class QueryQuizzesService(
             ?: throw ExpectedException(message = "사용자 정보가 존재하지 않습니다.", statusCode = HttpStatus.NOT_FOUND)
 
         val questionType = if (gameSession.currentDifficulty == QuizDifficulty.EASY) {
-            QuestionTypeRequest.OX
+            QuestionTypeRequest.FILL_IN_BLANK
         } else {
             QuestionTypeRequest.MULTIPLE_CHOICE
         }
