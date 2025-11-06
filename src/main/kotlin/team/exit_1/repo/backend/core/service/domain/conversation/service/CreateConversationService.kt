@@ -27,7 +27,7 @@ class CreateConversationService(
     private val objectMapper: ObjectMapper
 ) {
 
-    private final val greetingMessage = "오늘 무슨 일이 있었는지 나에게 물어봐줘.\n"
+    private final val greetingMessage = "오늘 무슨 일이 있었는지 나에게 물어봐줘. ( 이 질문에 대해선 답변을 하지말고 너가 먼저 말을 거는 것 처럼 해줘 )\n"
 
     @Transactional
     fun execute(): ConversationResponse {
