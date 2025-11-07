@@ -26,6 +26,7 @@ class SendMessageService(
     private val llmServiceClient: LlmServiceClient,
     private val objectMapper: ObjectMapper,
     private val responseFilterUtil: ResponseFilterUtil,
+    private val contextualFallbackService: ContextualFallbackService,
 ) {
     @Transactional
     fun execute(
@@ -52,25 +53,48 @@ class SendMessageService(
         val savedUserMessage = messageJpaRepository.save(userMessage)
         logger().info("사용자 메시지 저장 완료 - messageId: ${savedUserMessage.id}, conversationId: $conversationId")
 
-        val chatRequest =
-            ChatRequest(
-                userId = userId,
-                message = request.content,
-            )
+        val immediateResponse = contextualFallbackService.checkImmediateResponse(conversation, request.content)
 
-        val llmResponse = llmServiceClient.sendChatMessage(chatRequest)
+        val (filteredResponse, contextUsageInfo) =
+            if (immediateResponse != null) {
+                logger().info("즉시 응답 반환 - conversationId: $conversationId")
+                Pair(immediateResponse, null)
+            } else {
+                try {
+                    logger().info("LLM 서비스 호출 시작 - conversationId: $conversationId")
 
-        if (!llmResponse.success || llmResponse.data == null) {
-            throw ExpectedException(
-                message = "LLM 서버 응답 실패: ${llmResponse.error?.message ?: "알 수 없는 오류"}",
-                statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
-            )
-        }
+                    val chatRequest =
+                        ChatRequest(
+                            userId = userId,
+                            message = request.content,
+                        )
 
-        val chatResponse = objectMapper.convertValue(llmResponse.data, ChatResponse::class.java)
+                    val llmResponse = llmServiceClient.sendChatMessage(chatRequest)
 
-        // AI 응답에서 불필요한 인삿말 필터링
-        val filteredResponse = responseFilterUtil.filterResponse(chatResponse.response)
+                    if (!llmResponse.success || llmResponse.data == null) {
+                        throw ExpectedException(
+                            message = "LLM 서버 응답 실패: ${llmResponse.error?.message ?: "알 수 없는 오류"}",
+                            statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
+                        )
+                    }
+
+                    val chatResponse = objectMapper.convertValue(llmResponse.data, ChatResponse::class.java)
+                    val filteredResponse = responseFilterUtil.filterResponse(chatResponse.response)
+                    val contextInfo =
+                        chatResponse.contextUsed?.let {
+                            ContextUsageInfo(
+                                totalConversations = it.totalConversations,
+                                topScore = it.topScore,
+                            )
+                        }
+
+                    logger().info("LLM 서비스 호출 성공 - conversationId: $conversationId")
+                    Pair(filteredResponse, contextInfo)
+                } catch (e: Exception) {
+                    logger().error("LLM 서비스 호출 중 오류 발생, conversationId: $conversationId", e)
+                    throw e
+                }
+            }
 
         val aiMessage =
             Message().apply {
@@ -87,13 +111,7 @@ class SendMessageService(
             messageId = savedAiMessage.id!!,
             content = savedAiMessage.content,
             timestamp = savedAiMessage.timestamp!!,
-            contextUsed =
-                chatResponse.contextUsed?.let {
-                    ContextUsageInfo(
-                        totalConversations = it.totalConversations,
-                        topScore = it.topScore,
-                    )
-                },
+            contextUsed = contextUsageInfo,
         )
     }
 }
